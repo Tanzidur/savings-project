@@ -15,6 +15,8 @@ database for the prototype phase.
 ## Folder Structure
 savings-project/
 ├── index.html
+├── app.py               ← Flask backend, all /api/* routes
+├── venv/                ← local only, not pushed (see .gitignore)
 ├── css/
 │   ├── variables.css   ← shared colors/fonts, import this FIRST on every page
 │   └── style.css       ← landing page styles
@@ -22,7 +24,7 @@ savings-project/
 │   └── script.js
 ├── assets/images/
 ├── pages/               ← every new page goes here
-├── data/                ← mock JSON "database" files
+├── data/                ← legacy mock JSON (unused by DB-connected pages)
 └── README.md
 ## Shared Conventions (read before coding)
 - Always link `css/variables.css` before your own page's stylesheet.
@@ -44,40 +46,26 @@ savings-project/
 
 *(Fill in names once you all agree — page count may still grow as we refine features.)*
 
-## Update 1 – Goals (Database Connection + Spending Chart)
-Instructor requirement for this milestone: show the frontend actually pulling 
-from a database (mocked as JSON for the prototype) and display a spending/
-transaction visualization.
+## Update 1 – Submission Scope
+Faculty asked for 4-5 pages with real database connectivity for this round. 
+These are the pages being submitted:
 
-- [ ] Create `data/banks.json` — mock "database" with a few banks, each 
-      listing available card types (network: Visa/Mastercard/NPSB, 
-      type: Debit/Credit, tier: Classic/Gold/Platinum/Signature) and their 
-      benefits (cashback %, reward points, EMI availability).
-- [ ] Use JavaScript `fetch()` to load `banks.json` and dynamically render 
-      bank + card info onto the page (DOM manipulation, not hardcoded HTML) 
-      — this is the "database connection" part.
-- [ ] Create `data/transactions.json` — mock transaction history with 
-      category + amount fields.
-- [ ] Add Chart.js pie chart on the Dashboard page, fed by 
-      `transactions.json`, to visualize spending by category.
-- [ ] Demo: page loads → JS fetches JSON → banks/cards list renders → 
-      pie chart renders — proves data-driven UI end to end.
+1. **Landing Page** — static, sets context (no DB needed)
+2. **Card Selection** — Flask + MySQL (`banks`, `cards` tables, joined)
+3. **Benefits/Offers** — Flask + MySQL (`offers` table, joined with `banks`)
+4. **Merchant Directory** — Flask + MySQL (`merchants` table)
+5. **Financial Education** — Flask + MySQL (`articles` table)
 
-## Update 2 – Planned (Backend Migration: Flask + MySQL)
-Not started yet. To be tackled as a deliberate, team-wide milestone once 
-more pages exist and data shape is settled — not page-by-page.
+All four data-driven pages fetch live from Flask API endpoints 
+(`/api/banks`, `/api/offers`, `/api/merchants`, `/api/articles`), which 
+query real MySQL tables in `savings_db` — no hardcoded/mock JSON in the 
+final submission pages.
 
-- [ ] Install & set up MySQL, design real schema (Users, Banks, Cards, 
-      Card Types, Merchant Offers, Cashback Offers, Reward Points).
-- [ ] Set up Flask project (separate from frontend files) with API routes 
-      (e.g. `/api/profile`, `/api/banks`, `/api/cards`).
-- [ ] Migrate mock JSON files (`data/*.json`) into actual MySQL tables — 
-      same data shape, just swapping "read from file" for "query DB."
-- [ ] Rewire frontend JS to use `fetch()` calls to Flask endpoints instead 
-      of only updating the DOM locally (currently used in Profile, Login).
-- [ ] Handle CORS + run frontend and Flask backend concurrently during dev.
-- Until this is done: all pages continue using mock JSON / in-memory JS 
-  updates only. Avoid building anything that assumes a live backend.
+**Not part of this submission (in progress, later phase):**
+- Login/Register, Profile Management — currently UI-only (in-memory JS), 
+  no backend auth yet. Intentional — auth typically comes after core 
+  data-driven pages are proven out.
+- Dashboard, Admin Panel — not built yet.
 
 ## Progress Log
 - [14/07] Set up project structure (index.html, css/, js/, assets/).
@@ -93,6 +81,25 @@ more pages exist and data shape is settled — not page-by-page.
      + Chart.js pie chart for spending on Dashboard page.
 - [15/07] Built Login/Register page (toggle-based, one page). Built 
      Profile Management page (editable info + password change, in-memory 
-     only). Decided backend (Flask + MySQL) is a separate future 
-     milestone — see Update 2 above. Staying on mock JSON/in-JS data 
-     for all pages until then.
+     only). Decided backend (Flask + MySQL) would come later rather than 
+     per-page. Staying on mock JSON/in-JS data for all pages until then.
+- [16/07] Installed Python + XAMPP (MySQL). Created `savings_db` with 
+     `banks` and `cards` tables (foreign key relationship). Built Flask 
+     backend (`app.py`) with `/api/banks` endpoint. Migrated Card 
+     Selection page from `banks.json` to the real Flask/MySQL endpoint — 
+     first page with a real, working database connection.
+- [16/07] Built Benefits/Offers page — new `offers` table (joined with 
+     `banks`), `/api/offers` endpoint, category filter UI. Built Merchant 
+     Directory page — new `merchants` table, `/api/merchants` endpoint, 
+     live search. Built Financial Education page — new `articles` table, 
+     `/api/articles` endpoint, expandable article cards. All three 
+     connected to real MySQL via Flask from the start.
+- [16/07] Confirmed with faculty: 4-5 DB-connected pages is the target 
+     for this submission round. Updated README with Update 1 Submission 
+     Scope (Landing + 4 DB-connected pages: Card Selection, Benefits, 
+     Merchant Directory, Financial Education). Login/Register and Profile 
+     explicitly scoped out of this round — UI-only, no backend yet.
+- [16/07] Fixed `.gitignore`/venv tracking issue — venv had already been 
+     committed before `.gitignore` was added, so the ignore rule wasn't 
+     taking effect. Ran `git rm -r --cached venv` to untrack it; 
+     `.gitignore` now correctly keeps it out going forward.

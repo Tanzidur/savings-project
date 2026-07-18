@@ -1,0 +1,79 @@
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  margin: 0;
+  padding: 2rem 1rem;
+}
+
+.page-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.page-container h1 {
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.bank-list, .card-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.bank-btn, .card-btn {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--color-primary);
+  background: white;
+  color: var(--color-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.bank-btn.selected, .card-btn.selected {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.placeholder-msg, .loading-msg {
+  color: #999;
+  font-style: italic;
+}
+
+.benefits-box {
+  line-height: 1.8;
+}
+
+.benefit-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+
+.benefit-row:last-child {
+  border-bottom: none;
+}
+
+.benefit-label {
+  color: #777;
+}
+
+.benefit-value {
+  font-weight: 600;
+}

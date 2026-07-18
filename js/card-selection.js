@@ -6,7 +6,7 @@ const cardListEl = document.getElementById('card-list');
 const benefitsBoxEl = document.getElementById('benefits-box');
 
 // Fetch the mock "database" file
-fetch('../data/banks.json')
+fetch('http://localhost:5000/api/banks')
   .then(response => response.json())
   .then(data => {
     banksData = data;
