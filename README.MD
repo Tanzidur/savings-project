@@ -35,7 +35,7 @@ savings-project/
 
 ## Pages & Ownership
 1. **Landing Page** ✅ done — Tanzidur Rahman
-2. **Login / Register Page** — assigned to: ___
+2. **Login / Register Page** — ✅ done — Tanzidur Rahman
 3. **Profile Management** — assigned to: ___
 4. **Card Selection Page** — assigned to: ___
 5. **Benefits/Offer Page** — assigned to: ___
