@@ -1,11 +1,14 @@
 body {
   font-family: var(--font-body);
   background-color: var(--color-background);
+  margin: 0;
+}
+
+.auth-page-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  margin: 0;
+  min-height: calc(100vh - 70px);
 }
 
 .auth-container {

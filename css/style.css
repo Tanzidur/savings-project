@@ -10,44 +10,6 @@ body {
     background-color: var(--color-bg);
 }
 
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 40px;
-    background-color: var(--color-white);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-}
-
-.logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--color-primary);
-}
-
-.nav-links {
-    display: flex;
-    list-style: none;
-    gap: 28px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--color-text);
-    font-weight: 500;
-}
-
-.nav-links a:hover {
-    color: var(--color-primary);
-}
-
-.btn-login {
-    background-color: var(--color-primary);
-    color: var(--color-white) !important;
-    padding: 8px 18px;
-    border-radius: var(--radius-sm);
-}
-
 .hero {
     text-align: center;
     padding: 100px 20px;

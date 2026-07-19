@@ -2,12 +2,12 @@ body {
   font-family: var(--font-body);
   background-color: var(--color-background);
   margin: 0;
-  padding: 2rem 1rem;
 }
 
 .page-container {
   max-width: 900px;
   margin: 0 auto;
+  padding: 2rem 1rem;
 }
 
 .page-container h1 {

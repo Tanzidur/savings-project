@@ -1,105 +1,68 @@
 # Savings – Smart Bank Card Benefit Discovery
 
-## Description
-A web-based fintech platform helping debit/credit card users in Bangladesh 
-discover cashback, discounts, reward points, EMI facilities, and partner 
-merchant offers. Manually maintained (no AI/ML) via a mock/hardcoded 
-database for the prototype phase.
+A web app for discovering cashback, discounts, reward points, EMI offers, and merchant deals across banks in Bangladesh. Built as a course project — currently a working prototype, no AI/ML involved.
 
 ## Tech Stack
 - Frontend: HTML, CSS, JavaScript
-- Backend: Python (Flask) / PHP
-- Database: MySQL (mocked with JSON/JS data for prototype)
+- Backend: Python (Flask)
+- Database: MySQL (via XAMPP)
 - IDE: VS Code
 
 ## Folder Structure
+```
 savings-project/
 ├── index.html
 ├── app.py               ← Flask backend, all /api/* routes
 ├── venv/                ← local only, not pushed (see .gitignore)
 ├── css/
-│   ├── variables.css   ← shared colors/fonts, import this FIRST on every page
-│   └── style.css       ← landing page styles
+│   ├── variables.css    ← shared colors/fonts, import this FIRST on every page
+│   ├── nav.css           ← shared navbar
+│   └── style.css        ← landing page styles
 ├── js/
 │   └── script.js
 ├── assets/images/
-├── pages/               ← every new page goes here
-├── data/                ← legacy mock JSON (unused by DB-connected pages)
+├── pages/                ← every new page goes here
+├── data/                 ← old mock JSON, not used anymore
 └── README.md
-## Shared Conventions (read before coding)
-- Always link `css/variables.css` before your own page's stylesheet.
+```
+
+## Conventions
+- Link `css/variables.css` and `css/nav.css` before your own page's stylesheet.
 - Use `var(--color-primary)` etc. instead of hardcoding hex colors.
-- One CSS file per page (e.g. `login.css`, `dashboard.css`) — don't dump everything into one giant stylesheet.
-- Class naming: lowercase, hyphenated (`.feature-card`, not `.FeatureCard` or `.feature_card`).
-- Every new page file goes inside `pages/`, and mock data goes inside `data/` as `.json`.
+- One CSS file per page (e.g. `login.css`, `dashboard.css`).
+- Class naming: lowercase, hyphenated (`.feature-card`, not `.FeatureCard`).
+- New pages go in `pages/`, linked via the shared navbar in `css/nav.css`.
 
 ## Pages & Ownership
-1. **Landing Page** ✅ done — Tanzidur Rahman
-2. **Login / Register Page** — ✅ done — Tanzidur Rahman
-3. **Profile Management** — assigned to: ___
-4. **Card Selection Page** — assigned to: ___
-5. **Benefits/Offer Page** — assigned to: ___
-6. **Merchant Directory Page** — assigned to: ___
-7. **Financial Education Page** — assigned to: ___
-8. **Dashboard Page** (spending pie chart + transaction history) — assigned to: ___
-9. **Admin Panel** (manage banks, cards, offers, users) — assigned to: ___
+1. Landing Page ✅ — Tanzidur
+2. Login / Register ✅ — Tanzidur (UI done, real auth pending)
+3. Profile Management ✅ — Tanzidur (UI done, not connected to DB yet)
+4. Card Selection ✅ — Tanzidur (connected to MySQL)
+5. Benefits/Offers ✅ — Tanzidur (connected to MySQL)
+6. Merchant Directory ✅ — Tanzidur (connected to MySQL)
+7. Financial Education ✅ — Tanzidur (connected to MySQL)
+8. Dashboard — not started
+9. Admin Panel — not started
 
-*(Fill in names once you all agree — page count may still grow as we refine features.)*
+## Update 1 (submitted)
+4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route (`/api/banks`, `/api/offers`, `/api/merchants`, `/api/articles`). Landing page included as static context. Login/Register and Profile are built but not DB-connected yet — that's Update 2.
 
-## Update 1 – Submission Scope
-Faculty asked for 4-5 pages with real database connectivity for this round. 
-These are the pages being submitted:
+## Update 2 (planned)
+Right now the site is a catalog — anyone can browse everything, but nothing is tied to an actual logged-in user. Update 2 is about fixing that:
 
-1. **Landing Page** — static, sets context (no DB needed)
-2. **Card Selection** — Flask + MySQL (`banks`, `cards` tables, joined)
-3. **Benefits/Offers** — Flask + MySQL (`offers` table, joined with `banks`)
-4. **Merchant Directory** — Flask + MySQL (`merchants` table)
-5. **Financial Education** — Flask + MySQL (`articles` table)
+- **Real accounts** — `users` table, hashed passwords, actual `/api/login` and `/api/register` routes with sessions (replacing the current fake in-browser login).
+- **Linking users to cards** — `user_cards` table so a user can save which card(s) they actually hold.
+- **Personalized Dashboard** — new page, shows offers relevant to *your* cards instead of everything, plus a spending pie chart (Chart.js).
+- **Route protection** — Dashboard and "My Cards" should require login.
 
-All four data-driven pages fetch live from Flask API endpoints 
-(`/api/banks`, `/api/offers`, `/api/merchants`, `/api/articles`), which 
-query real MySQL tables in `savings_db` — no hardcoded/mock JSON in the 
-final submission pages.
-
-**Not part of this submission (in progress, later phase):**
-- Login/Register, Profile Management — currently UI-only (in-memory JS), 
-  no backend auth yet. Intentional — auth typically comes after core 
-  data-driven pages are proven out.
-- Dashboard, Admin Panel — not built yet.
+Bigger than any single page so far, so it's its own milestone rather than rushed into Update 1.
 
 ## Progress Log
-- [14/07] Set up project structure (index.html, css/, js/, assets/).
-  Built landing page: navbar, hero section, features grid (4 cards), 
-  footer. Fully styled, static (no JS interactivity yet).
-- [14/07] Added shared css/variables.css for consistent colors/fonts 
-  across all pages. Divided remaining pages among 3 team members 
-  (see Pages & Ownership above).
-- [14/07] Connected variables.css to landing page, moved hardcoded 
-     hex colors to CSS variables. Landing page complete and stable.
-- [15/07] Planned Update 1: mock JSON "database" (banks.json, 
-     transactions.json) + JS fetch to render bank/card data dynamically 
-     + Chart.js pie chart for spending on Dashboard page.
-- [15/07] Built Login/Register page (toggle-based, one page). Built 
-     Profile Management page (editable info + password change, in-memory 
-     only). Decided backend (Flask + MySQL) would come later rather than 
-     per-page. Staying on mock JSON/in-JS data for all pages until then.
-- [16/07] Installed Python + XAMPP (MySQL). Created `savings_db` with 
-     `banks` and `cards` tables (foreign key relationship). Built Flask 
-     backend (`app.py`) with `/api/banks` endpoint. Migrated Card 
-     Selection page from `banks.json` to the real Flask/MySQL endpoint — 
-     first page with a real, working database connection.
-- [16/07] Built Benefits/Offers page — new `offers` table (joined with 
-     `banks`), `/api/offers` endpoint, category filter UI. Built Merchant 
-     Directory page — new `merchants` table, `/api/merchants` endpoint, 
-     live search. Built Financial Education page — new `articles` table, 
-     `/api/articles` endpoint, expandable article cards. All three 
-     connected to real MySQL via Flask from the start.
-- [16/07] Confirmed with faculty: 4-5 DB-connected pages is the target 
-     for this submission round. Updated README with Update 1 Submission 
-     Scope (Landing + 4 DB-connected pages: Card Selection, Benefits, 
-     Merchant Directory, Financial Education). Login/Register and Profile 
-     explicitly scoped out of this round — UI-only, no backend yet.
-- [16/07] Fixed `.gitignore`/venv tracking issue — venv had already been 
-     committed before `.gitignore` was added, so the ignore rule wasn't 
-     taking effect. Ran `git rm -r --cached venv` to untrack it; 
-     `.gitignore` now correctly keeps it out going forward.
+- 14/07 — Project structure set up. Landing page built and styled.
+- 14/07 — Added `variables.css`, divided remaining pages among the team.
+- 15/07 — Built Login/Register (toggle UI) and Profile pages, in-memory only.
+- 16/07 — Installed MySQL (XAMPP) + Flask. Connected Card Selection to real DB.
+- 16/07 — Connected Benefits, Merchant Directory, and Financial Education pages to MySQL.
+- 16/07 — Scoped Update 1 to the 4 DB-connected pages + landing.
+- 16/07 — Fixed venv being tracked in git.
+- 19/07 — Added shared navbar to all pages. Fixed font mismatch, navbar spacing, and login page layout bug. Planned Update 2 (real auth + personalization).
