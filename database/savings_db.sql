@@ -1,0 +1,229 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jul 20, 2026 at 09:49 AM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `savings_db`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `articles`
+--
+
+CREATE TABLE `articles` (
+  `id` int(11) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `summary` varchar(255) DEFAULT NULL,
+  `content` text DEFAULT NULL,
+  `read_time` varchar(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `articles`
+--
+
+INSERT INTO `articles` (`id`, `title`, `category`, `summary`, `content`, `read_time`) VALUES
+(1, 'Understanding Credit Card Interest', 'Credit Basics', 'Learn how interest is calculated and how to avoid unnecessary charges.', 'Credit card interest, or APR, is charged when you carry a balance past your due date. Paying your full statement balance every month avoids interest entirely. If you only pay the minimum, interest compounds on the remaining balance, which can grow quickly over time.', '4 min'),
+(2, 'EMI vs Full Payment: What to Choose', 'Smart Spending', 'A breakdown of when EMI makes sense and when it does not.', 'EMI (Equal Monthly Installment) lets you split a large purchase into smaller payments, often interest-free for 3-6 months on partner merchants. It makes sense for planned large purchases, but can encourage overspending if used casually for small items you could pay for outright.', '5 min'),
+(3, 'Building an Emergency Fund', 'Savings', 'Why every household needs a cash buffer, and how much is enough.', 'An emergency fund should cover 3-6 months of essential expenses, kept in an easily accessible savings account. Start small: even saving 10% of monthly income consistently builds a meaningful buffer within a year.', '3 min'),
+(4, 'How Reward Points Actually Work', 'Credit Basics', 'Reward points are not free money, here is what to know.', 'Reward points are typically earned per unit spent (e.g. 1 point per 50 BDT) and can be redeemed for cashback, vouchers, or merchandise. Points often expire, and redemption value varies by card, so compare the actual cash value before assuming points are a good deal.', '4 min'),
+(5, 'Avoiding Common Debt Traps', 'Debt Management', 'Warning signs that your card usage is becoming a problem.', 'Common warning signs include only paying the minimum due, using one card to pay another, and not knowing your total outstanding balance across cards. Tracking spending monthly and setting a hard limit per card helps avoid a debt spiral.', '5 min');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `banks`
+--
+
+CREATE TABLE `banks` (
+  `id` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `banks`
+--
+
+INSERT INTO `banks` (`id`, `name`) VALUES
+('bracbank', 'BRAC Bank'),
+('citybank', 'City Bank'),
+('dbbl', 'Dutch-Bangla Bank');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cards`
+--
+
+CREATE TABLE `cards` (
+  `id` varchar(50) NOT NULL,
+  `bank_id` varchar(50) NOT NULL,
+  `network` varchar(30) DEFAULT NULL,
+  `type` varchar(30) DEFAULT NULL,
+  `tier` varchar(30) DEFAULT NULL,
+  `cashback` varchar(20) DEFAULT NULL,
+  `reward_points` varchar(50) DEFAULT NULL,
+  `emi` tinyint(1) DEFAULT NULL,
+  `annual_fee` varchar(30) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `cards`
+--
+
+INSERT INTO `cards` (`id`, `bank_id`, `network`, `type`, `tier`, `cashback`, `reward_points`, `emi`, `annual_fee`) VALUES
+('brac-npsb-classic', 'bracbank', 'NPSB', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '300 BDT'),
+('brac-visa-platinum', 'bracbank', 'Visa', 'Credit', 'Platinum', '8%', '3 pts per 50 BDT', 1, '3000 BDT'),
+('city-master-signature', 'citybank', 'Mastercard', 'Credit', 'Signature', '10%', '4 pts per 50 BDT', 1, '5000 BDT'),
+('dbbl-master-gold', 'dbbl', 'Mastercard', 'Credit', 'Gold', '5%', '2 pts per 50 BDT', 1, '1500 BDT'),
+('dbbl-visa-classic', 'dbbl', 'Visa', 'Debit', 'Classic', '2%', '1 pt per 50 BDT', 0, '500 BDT');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merchants`
+--
+
+CREATE TABLE `merchants` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `address` varchar(150) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `merchants`
+--
+
+INSERT INTO `merchants` (`id`, `name`, `category`, `description`, `address`) VALUES
+(1, 'Daraz', 'Shopping', 'Leading online marketplace for electronics, fashion, and more', 'Online'),
+(2, 'Star Cineplex', 'Entertainment', 'Premier cinema chain across Bangladesh', 'Bashundhara City, Dhaka'),
+(3, 'Pizza Hut', 'Dining', 'International pizza and dine-in restaurant chain', 'Gulshan, Dhaka'),
+(4, 'Shwapno', 'Shopping', 'Retail supermarket chain for groceries and essentials', 'Multiple locations'),
+(5, 'Biman Bangladesh', 'Travel', 'National flag carrier airline of Bangladesh', 'Motijheel, Dhaka');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `offers`
+--
+
+CREATE TABLE `offers` (
+  `id` int(11) NOT NULL,
+  `merchant` varchar(100) NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `discount` varchar(30) DEFAULT NULL,
+  `bank_id` varchar(50) DEFAULT NULL,
+  `valid_until` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `offers`
+--
+
+INSERT INTO `offers` (`id`, `merchant`, `title`, `description`, `category`, `discount`, `bank_id`, `valid_until`) VALUES
+(1, 'Daraz', '20% Off Electronics', 'Get 20% cashback on all electronics purchases over 5000 BDT', 'Shopping', '20%', 'dbbl', '2026-12-31'),
+(2, 'Star Cineplex', 'Buy 1 Get 1 Movie Ticket', 'Free ticket with any BRAC Bank card purchase', 'Entertainment', 'BOGO', 'bracbank', '2026-09-30'),
+(3, 'Pizza Hut', '15% Off Dine-in', '15% discount on total bill for dine-in orders', 'Dining', '15%', 'citybank', '2026-11-15'),
+(4, 'Shwapno', '10% Cashback Groceries', 'Cashback on grocery bills above 2000 BDT', 'Shopping', '10%', 'dbbl', '2026-10-31'),
+(5, 'Biman Bangladesh', '5% Off Flight Bookings', 'Discount on domestic and international flight bookings', 'Travel', '5%', 'bracbank', '2027-01-31');
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `articles`
+--
+ALTER TABLE `articles`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `banks`
+--
+ALTER TABLE `banks`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `cards`
+--
+ALTER TABLE `cards`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `bank_id` (`bank_id`);
+
+--
+-- Indexes for table `merchants`
+--
+ALTER TABLE `merchants`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `offers`
+--
+ALTER TABLE `offers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `bank_id` (`bank_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `articles`
+--
+ALTER TABLE `articles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `merchants`
+--
+ALTER TABLE `merchants`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `offers`
+--
+ALTER TABLE `offers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `cards`
+--
+ALTER TABLE `cards`
+  ADD CONSTRAINT `cards_ibfk_1` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`);
+
+--
+-- Constraints for table `offers`
+--
+ALTER TABLE `offers`
+  ADD CONSTRAINT `offers_ibfk_1` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
