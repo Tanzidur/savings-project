@@ -1,0 +1,71 @@
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background, var(--color-bg));
+  margin: 0;
+}
+
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-container h1 {
+  color: var(--color-primary);
+  margin-bottom: 0.3rem;
+}
+
+.page-subtitle {
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card, .transactions-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.chart-card h3, .transactions-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.transaction-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.transaction-row:last-child {
+  border-bottom: none;
+}
+
+.transaction-category {
+  font-weight: 600;
+}
+
+.transaction-date {
+  color: #999;
+  font-size: 0.8rem;
+}
+
+.loading-msg {
+  color: #999;
+  font-style: italic;
+}

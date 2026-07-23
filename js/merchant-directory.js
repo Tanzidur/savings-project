@@ -3,7 +3,7 @@ let merchantsData = [];
 const merchantGrid = document.getElementById('merchant-grid');
 const searchInput = document.getElementById('search-input');
 
-fetch('http://localhost:5000/api/merchants')
+fetch('http://127.0.0.1:5000/api/merchants')
   .then(response => response.json())
   .then(data => {
     merchantsData = data;

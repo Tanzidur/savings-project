@@ -1,19 +1,20 @@
 let banksData = [];
 let selectedBankId = null;
+let currentSelectedCardId = null;
 
 const bankListEl = document.getElementById('bank-list');
 const cardListEl = document.getElementById('card-list');
 const benefitsBoxEl = document.getElementById('benefits-box');
 
-// Fetch the mock "database" file
-fetch('http://localhost:5000/api/banks')
+// Fetch banks + cards from Flask/MySQL
+fetch('http://127.0.0.1:5000/api/banks')
   .then(response => response.json())
   .then(data => {
     banksData = data;
     renderBankButtons();
   })
   .catch(error => {
-    bankListEl.innerHTML = '<p class="placeholder-msg">Could not load banks.json</p>';
+    bankListEl.innerHTML = '<p class="placeholder-msg">Could not load banks. Is Flask running?</p>';
     console.error('Error loading banks:', error);
   });
 
@@ -35,6 +36,8 @@ function selectBank(bankId, clickedBtn) {
   clickedBtn.classList.add('selected');
 
   benefitsBoxEl.innerHTML = '<p class="placeholder-msg">Select a card above to view its benefits.</p>';
+  document.getElementById('save-card-btn').classList.add('hidden');
+  document.getElementById('save-card-status').textContent = '';
 
   const bank = banksData.find(b => b.id === bankId);
   renderCardButtons(bank.cards);
@@ -55,6 +58,8 @@ function selectCard(card, clickedBtn) {
   document.querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
   clickedBtn.classList.add('selected');
 
+  currentSelectedCardId = card.id;
+
   benefitsBoxEl.innerHTML = `
     <div class="benefit-row">
       <span class="benefit-label">Cashback</span>
@@ -73,4 +78,35 @@ function selectCard(card, clickedBtn) {
       <span class="benefit-value">${card.annualFee}</span>
     </div>
   `;
+
+  document.getElementById('save-card-btn').classList.remove('hidden');
+  document.getElementById('save-card-status').textContent = '';
 }
+
+// Save the currently selected card to the logged-in user's account
+document.getElementById('save-card-btn').addEventListener('click', () => {
+  fetch('http://127.0.0.1:5000/api/my-cards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ cardId: currentSelectedCardId })
+  })
+  .then(res => {
+    if (res.status === 401) {
+      window.location.href = 'login.html';
+      return null;
+    }
+    return res.json();
+  })
+  .then(data => {
+    if (!data) return;
+    const status = document.getElementById('save-card-status');
+    if (data.success) {
+      status.style.color = 'green';
+      status.textContent = 'Card saved to your account.';
+    } else {
+      status.style.color = 'orange';
+      status.textContent = data.error || 'Could not save card.';
+    }
+  });
+});

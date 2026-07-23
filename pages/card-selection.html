@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,17 +9,17 @@
   <link rel="stylesheet" href="../css/nav.css">
   <link rel="stylesheet" href="../css/card-selection.css">
 </head>
+
 <body>
-<nav class="navbar">
-  <div class="logo">Savings</div>
-  <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="card-selection.html">Card Selection</a></li>
-    <li><a href="benefits.html">Benefits</a></li>
-    <li><a href="merchant-directory.html">Merchants</a></li>
-    <li><a href="financial-education.html">Financial Education</a></li>
-    <li><a href="login.html" class="btn-login">Login</a></li>
-  </ul>
+  <nav class="navbar">
+    <div class="logo">Savings</div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="benefits.html">Deals & Offers</a></li>
+      <li><a href="financial-education.html">Financial Education</a></li>
+      <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
+    </ul>
   </nav>
   <div class="page-container">
     <h1>Select Your Bank & Card</h1>
@@ -42,9 +43,15 @@
       <div class="benefits-box" id="benefits-box">
         <p class="placeholder-msg">Select a card above to view its benefits.</p>
       </div>
+      <button id="save-card-btn" class="btn-primary hidden" style="margin-top: 1rem;">Save This Card to My
+        Account</button>
+      <p class="status-msg" id="save-card-status"></p>
     </section>
   </div>
 
   <script src="../js/card-selection.js"></script>
+  <script>const NAV_BASE = '';</script>
+  <script src="../js/nav-auth.js"></script>
 </body>
+
 </html>

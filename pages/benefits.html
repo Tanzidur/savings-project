@@ -3,36 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Benefits & Offers - Savings</title>
+  <title>Deals & Offers - Savings</title>
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/nav.css">
   <link rel="stylesheet" href="../css/benefits.css">
 </head>
 <body>
+
   <nav class="navbar">
-  <div class="logo">Savings</div>
-  <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="card-selection.html">Card Selection</a></li>
-    <li><a href="benefits.html">Benefits</a></li>
-    <li><a href="merchant-directory.html">Merchants</a></li>
-    <li><a href="financial-education.html">Financial Education</a></li>
-    <li><a href="login.html" class="btn-login">Login</a></li>
-  </ul>
+    <div class="logo">Savings</div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="benefits.html">Deals & Offers</a></li>
+      <li><a href="financial-education.html">Financial Education</a></li>
+      <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
+    </ul>
   </nav>
 
   <div class="page-container">
-    <h1>Benefits & Offers</h1>
+    <h1>Deals & Offers</h1>
 
-    <div class="filter-bar" id="filter-bar">
-      <button class="filter-btn active" data-category="All">All</button>
+    <div class="view-tabs">
+      <button class="view-tab-btn active" data-view="offers">All Deals</button>
+      <button class="view-tab-btn" data-view="merchants">Browse by Merchant</button>
     </div>
 
-    <div class="offers-grid" id="offers-grid">
-      <p class="loading-msg">Loading offers...</p>
+    <div id="offers-view">
+      <div class="filter-bar" id="filter-bar">
+        <button class="filter-btn active" data-category="All">All</button>
+      </div>
+
+      <div class="offers-grid" id="offers-grid">
+        <p class="loading-msg">Loading offers...</p>
+      </div>
+    </div>
+
+    <div id="merchants-view" class="hidden">
+      <input type="text" id="merchant-search" class="search-input" placeholder="Search merchants...">
+      <div class="merchant-grid" id="merchant-grid">
+        <p class="loading-msg">Loading merchants...</p>
+      </div>
     </div>
   </div>
 
+  <script>const NAV_BASE = '';</script>
+  <script src="../js/nav-auth.js"></script>
   <script src="../js/benefits.js"></script>
 </body>
 </html>
