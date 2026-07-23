@@ -21,6 +21,7 @@ savings-project/
 │   ├── nav.css           ← shared navbar
 │   └── style.css        ← landing page styles
 ├── js/
+│   ├── nav-auth.js       ← shows Login or [Name]/Logout in navbar based on session
 │   └── script.js
 ├── assets/images/
 ├── pages/                ← every new page goes here
@@ -47,6 +48,7 @@ cd savings-project
 - Go to http://localhost/phpmyadmin
 - Click **New**, name it `savings_db`, click **Create**
 - Click the **Import** tab, choose `database/savings_db.sql`, click **Go**
+- ⚠️ If `savings_db.sql` hasn't been re-exported recently, it may be missing the `users`, `user_cards`, and `transactions` tables — check with Tanzidur if login/dashboard doesn't work after import.
 
 **5. Set up Python packages**
 In VS Code's terminal, from the project folder:
@@ -75,38 +77,39 @@ Use VS Code's Live Server extension (or just open `index.html` in a browser) and
 
 ## Pages & Ownership
 1. Landing Page ✅ — Tanzidur
-2. Login / Register ✅ — Tanzidur (UI done, real auth coming in Update 2)
-3. Profile Management — on hold until real users exist
-4. Card Selection / "Card Perks" ✅ — connected to MySQL
-5. Deals & Offers (was Benefits/Offers, now absorbing Merchant Directory as a filter) ✅ — connected to MySQL
+2. Login / Register ✅ — Tanzidur (real auth, hashed passwords, sessions)
+3. Profile Management — on hold, not connected to real users yet
+4. Card Perks (was Card Selection) ✅ — connected to MySQL, "Save to My Account" working
+5. Deals & Offers ✅ — connected to MySQL, includes "Browse by Merchant" tab (old Merchant Directory merged in)
 6. Financial Education ✅ — connected to MySQL
-7. Dashboard — not started, coming in Update 2 (spending chart)
-8. Admin Panel ✅ — basic version done (hardcoded admin login, CRUD for banks/cards/merchants). Full user-facing admin polish is Update 3.
+7. Dashboard ✅ — shows logged-in user's name, spending pie chart (Chart.js), recent transactions
+8. Admin Panel ✅ — hardcoded admin login, CRUD for banks/cards/merchants (separate from user accounts)
 
 ## Update 1 (submitted)
-4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route (`/api/banks`, `/api/offers`, `/api/merchants`, `/api/articles`). Landing page included as static context. Login/Register and Profile are built but not DB-connected yet — that's Update 2.
+4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route (`/api/banks`, `/api/offers`, `/api/merchants`, `/api/articles`). Landing page included as static context.
 
-## Update 2 (planned)
-Faculty feedback after Update 1: add real login, and make offers actually actionable (not just browsable). This update also restructures naming since Card Selection and Benefits/Offers were confusing people.
+## Update 2 (in progress)
+Faculty feedback after Update 1: add real login, and make offers actually actionable (not just browsable). Also restructured naming since Card Selection and Benefits/Offers were confusing people.
 
-### Renaming / restructuring
-- **Card Selection** → benefits shown here are renamed **"Card Perks"** (cashback, reward points, EMI — perks of *owning* the card, from the bank).
-- **Benefits/Offers page** → renamed **"Deals & Offers"** (merchant discounts/BOGOs — things you *redeem*, from a store).
-- **Merchant Directory** → folded into Deals & Offers as a "Browse by Merchant" filter/tab instead of a separate page. One less page, less overlap.
+### Renaming / restructuring — done
+- Card Selection → **Card Perks** (bank-side perks: cashback, points, EMI).
+- Benefits/Offers → **Deals & Offers** (merchant-side discounts/BOGOs).
+- Merchant Directory → merged into Deals & Offers as a "Browse by Merchant" tab. Old page/files removed.
 
-### 1. Real user login
-- `users` table, hashed passwords (not plain text).
-- `/api/register`, `/api/login`, `/api/logout` — real sessions, replacing the current fake in-browser login.
-- Simple user Dashboard after login — spending shown as a chart (hardcoded/sample transaction data for now).
-- Admin CRUD (add/edit/delete banks, cards, merchants from a UI) is pushed to Update 3 — not part of this round.
+### 1. Real user login — done
+- `users` table, hashed passwords (werkzeug, not plain text).
+- `/api/register`, `/api/login`, `/api/logout`, `/api/session` — real Flask sessions.
+- Navbar shows Login link when logged out, or [Name] + Logout when logged in, on every page (`js/nav-auth.js`).
+- Dashboard page — welcome message, spending pie chart, transaction list. Pulls from a new `transactions` table (hardcoded sample rows per user for now).
+- `user_cards` table + "Save This Card to My Account" button on Card Perks — working.
+- Admin CRUD is separate from user accounts, already built, staying as-is.
 
-### 2. Offer → detail → pay → success flow
+### 2. Offer → detail → pay → success flow — not started yet
 - Click a deal card → detail view (full description, terms, expiry, which merchant/bank).
 - "Pay / Redeem" button → payout page → pick a saved card (or add a new one) → confirm.
-- Payout ends on a static "Payment Successful" screen. No real transaction, no payment gateway, no transaction history yet — that's reserved for Update 3.
-- `user_cards` table needed here too, so a logged-in user actually has cards to choose from at payout.
+- Payout ends on a static "Payment Successful" screen. No real transaction, no payment gateway, no transaction history beyond what Dashboard already shows.
 
-### 3. Small polish targets
+### 3. Small polish targets — not started yet
 - Loading spinners instead of plain "Loading..." text.
 - Proper empty/error states (e.g. "No offers found") instead of bare text.
 - Toast-style confirmations instead of `alert()`.
@@ -124,4 +127,5 @@ Faculty feedback after Update 1: add real login, and make offers actually action
 - 16/07 — Fixed venv being tracked in git.
 - 19/07 — Added shared navbar to all pages. Fixed font mismatch, navbar spacing, and login page layout bug. Planned Update 2 (real auth + personalization).
 - 19/07 — Exported database to `database/savings_db.sql` so teammates can set up MySQL locally. Added step-by-step setup guide to README.
-- 19/07 — Faculty feedback after Update 1: add real login + make offers actionable. Planned Update 2: real auth, "Card Perks" vs "Deals & Offers" rename, folding Merchant Directory into Deals & Offers, offer→pay→success flow, small UX polish. Admin CRUD pushed to Update 3.
+- 22/07 — Faculty feedback after Update 1: add real login + make offers actionable. Planned Update 2: real auth, "Card Perks" vs "Deals & Offers" rename, folding Merchant Directory into Deals & Offers, offer→pay→success flow, small UX polish. Admin CRUD pushed to Update 3.
+- 24/07 — Built real login/register (users table, hashed passwords, Flask sessions). Fixed cookie bug caused by localhost vs 127.0.0.1 mismatch — all fetch calls now use 127.0.0.1 consistently. Built Dashboard page with spending pie chart (Chart.js) and transaction list, pulling from a new `transactions` table. Added `user_cards` table + "Save This Card to My Account" on Card Perks page. Added shared navbar login/logout state (`nav-auth.js`) across all pages. Merged Merchant Directory into Deals & Offers as a "Browse by Merchant" tab; deleted old merchant-directory files. Added more sample offers so each merchant has 2 deals instead of 1.

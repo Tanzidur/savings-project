@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 20, 2026 at 09:49 AM
+-- Generation Time: Jul 24, 2026 at 12:44 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -147,7 +147,80 @@ INSERT INTO `offers` (`id`, `merchant`, `title`, `description`, `category`, `dis
 (2, 'Star Cineplex', 'Buy 1 Get 1 Movie Ticket', 'Free ticket with any BRAC Bank card purchase', 'Entertainment', 'BOGO', 'bracbank', '2026-09-30'),
 (3, 'Pizza Hut', '15% Off Dine-in', '15% discount on total bill for dine-in orders', 'Dining', '15%', 'citybank', '2026-11-15'),
 (4, 'Shwapno', '10% Cashback Groceries', 'Cashback on grocery bills above 2000 BDT', 'Shopping', '10%', 'dbbl', '2026-10-31'),
-(5, 'Biman Bangladesh', '5% Off Flight Bookings', 'Discount on domestic and international flight bookings', 'Travel', '5%', 'bracbank', '2027-01-31');
+(5, 'Biman Bangladesh', '5% Off Flight Bookings', 'Discount on domestic and international flight bookings', 'Travel', '5%', 'bracbank', '2027-01-31'),
+(6, 'Daraz', 'Free Delivery Weekend', 'No delivery charge on orders above 1000 BDT, Fri-Sun only', 'Shopping', 'Free Delivery', 'citybank', '2026-12-31'),
+(7, 'Star Cineplex', '30% Off Popcorn Combo', 'Discount on combo purchases with any BRAC Bank card', 'Entertainment', '30%', 'bracbank', '2026-09-30'),
+(8, 'Pizza Hut', 'Free Drink with Large Pizza', 'Complimentary soft drink with any large pizza order', 'Dining', 'Free Item', 'citybank', '2026-11-15'),
+(9, 'Shwapno', '5% Extra on Weekend Shopping', 'Additional cashback on top of regular offer, Sat-Sun', 'Shopping', '5%', 'dbbl', '2026-10-31'),
+(10, 'Biman Bangladesh', '10% Off Seat Upgrades', 'Discount on business class upgrades for existing bookings', 'Travel', '10%', 'bracbank', '2027-01-31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `transactions`
+--
+
+CREATE TABLE `transactions` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `category` varchar(50) DEFAULT NULL,
+  `amount` decimal(10,2) DEFAULT NULL,
+  `transaction_date` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `transactions`
+--
+
+INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`) VALUES
+(1, 1, 'Shopping', 3500.00, '2026-07-01'),
+(2, 1, 'Dining', 1200.00, '2026-07-05'),
+(3, 1, 'Groceries', 2800.00, '2026-07-08'),
+(4, 1, 'Entertainment', 900.00, '2026-07-12'),
+(5, 1, 'Travel', 4500.00, '2026-07-15'),
+(6, 1, 'Shopping', 1800.00, '2026-07-18');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `created_at`) VALUES
+(1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$c1dqHzhDjR8ZTWOE$5ad6a2b19c0c0877c358f9eb5b1ea61a25b640aae1f080dbd81106af5d4b8a03b7736c1124fdec50764ee3f0cd4f3cba95e5dec4f81b105374c1b60ec6d172ad', '2026-07-23 14:25:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_cards`
+--
+
+CREATE TABLE `user_cards` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `card_id` varchar(50) NOT NULL,
+  `added_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_cards`
+--
+
+INSERT INTO `user_cards` (`id`, `user_id`, `card_id`, `added_at`) VALUES
+(1, 1, 'brac-npsb-classic', '2026-07-23 22:13:27'),
+(2, 1, 'dbbl-visa-classic', '2026-07-23 22:26:35');
 
 --
 -- Indexes for dumped tables
@@ -186,6 +259,28 @@ ALTER TABLE `offers`
   ADD KEY `bank_id` (`bank_id`);
 
 --
+-- Indexes for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`);
+
+--
+-- Indexes for table `user_cards`
+--
+ALTER TABLE `user_cards`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `card_id` (`card_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -205,7 +300,25 @@ ALTER TABLE `merchants`
 -- AUTO_INCREMENT for table `offers`
 --
 ALTER TABLE `offers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `transactions`
+--
+ALTER TABLE `transactions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `user_cards`
+--
+ALTER TABLE `user_cards`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
@@ -222,6 +335,19 @@ ALTER TABLE `cards`
 --
 ALTER TABLE `offers`
   ADD CONSTRAINT `offers_ibfk_1` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`);
+
+--
+-- Constraints for table `transactions`
+--
+ALTER TABLE `transactions`
+  ADD CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Constraints for table `user_cards`
+--
+ALTER TABLE `user_cards`
+  ADD CONSTRAINT `user_cards_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `user_cards_ibfk_2` FOREIGN KEY (`card_id`) REFERENCES `cards` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
