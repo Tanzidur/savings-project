@@ -9,16 +9,16 @@ app = Flask(__name__)
 app.secret_key = 'savings-dev-secret-key'
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_HTTPONLY'] = False  # Allow JavaScript to verify session
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
 
-# Configure CORS properly
+# Configure CORS to work with sessions
 CORS(app, 
-     resources={r"/*": {
-         "origins": ["http://localhost:5000", "http://127.0.0.1:5000", "http://localhost", "http://127.0.0.1"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "Authorization"],
-         "supports_credentials": True,
-         "max_age": 3600
-     }})
+     origins=['http://localhost:5000', 'http://127.0.0.1:5000', 'http://localhost', 'http://127.0.0.1'],
+     supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+     max_age=3600)
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
@@ -182,8 +182,12 @@ def register():
         user_id = cur.lastrowid
         cur.close()
 
+        # Create permanent session
+        session.permanent = True
         session['user_id'] = user_id
         session['user_name'] = name
+        
+        print(f"Registration successful: user_id={user_id}, session={dict(session)}")
         return jsonify({"success": True, "name": name})
     except Exception as e:
         print(f"Error in register: {str(e)}")
@@ -206,10 +210,15 @@ def login():
         cur.close()
 
         if not user or not check_password_hash(user[2], password):
+            print(f"Login failed for email: {email}")
             return jsonify({"success": False, "error": "Invalid email or password"}), 401
 
+        # Create permanent session
+        session.permanent = True
         session['user_id'] = user[0]
         session['user_name'] = user[1]
+        
+        print(f"Login successful: user_id={user[0]}, session={dict(session)}")
         return jsonify({"success": True, "name": user[1]})
     except Exception as e:
         print(f"Error in login: {str(e)}")
@@ -224,6 +233,7 @@ def logout():
     try:
         session.pop('user_id', None)
         session.pop('user_name', None)
+        print("Logout successful")
         return jsonify({"success": True})
     except Exception as e:
         print(f"Error in logout: {str(e)}")
@@ -236,8 +246,13 @@ def check_session():
         return '', 200
     
     try:
-        if session.get('user_id'):
-            return jsonify({"loggedIn": True, "name": session.get('user_name')})
+        user_id = session.get('user_id')
+        user_name = session.get('user_name')
+        
+        print(f"Checking session: user_id={user_id}, user_name={user_name}")
+        
+        if user_id:
+            return jsonify({"loggedIn": True, "name": user_name})
         return jsonify({"loggedIn": False})
     except Exception as e:
         print(f"Error in check_session: {str(e)}")
@@ -250,10 +265,13 @@ def get_dashboard():
         return '', 200
     
     try:
-        if not session.get('user_id'):
+        user_id = session.get('user_id')
+        print(f"Dashboard request - user_id from session: {user_id}")
+        
+        if not user_id:
+            print("Dashboard access denied - no session")
             return jsonify({"error": "Not logged in"}), 401
 
-        user_id = session['user_id']
         cur = mysql.connection.cursor()
         cur.execute("SELECT category, amount, transaction_date FROM transactions WHERE user_id = %s ORDER BY transaction_date", (user_id,))
         rows = cur.fetchall()
