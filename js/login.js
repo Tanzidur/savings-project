@@ -34,7 +34,11 @@ loginForm.addEventListener('submit', (e) => {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      window.location.href = 'dashboard.html';
+      console.log('Login successful, redirecting to dashboard...');
+      // Redirect to dashboard after successful login
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 500);
     } else {
       alert(data.error || 'Login failed');
     }
@@ -67,7 +71,11 @@ registerForm.addEventListener('submit', (e) => {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      window.location.href = 'dashboard.html';
+      console.log('Registration successful, redirecting to dashboard...');
+      // Redirect to dashboard after successful registration
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 500);
     } else {
       alert(data.error || 'Registration failed');
     }
