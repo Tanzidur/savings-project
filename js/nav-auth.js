@@ -2,7 +2,7 @@
   const authItem = document.getElementById('nav-auth-item');
   if (!authItem) return;
 
-  fetch('http://127.0.0.1:5000/api/session', { credentials: 'include' })
+  fetch('/api/session', { credentials: 'include' })
     .then(res => res.json())
     .then(data => {
       if (data.loggedIn) {
@@ -13,7 +13,7 @@
         authItem.after(logoutItem);
 
         document.getElementById('nav-logout-btn').addEventListener('click', () => {
-          fetch('http://127.0.0.1:5000/api/logout', { method: 'POST', credentials: 'include' })
+          fetch('/api/logout', { method: 'POST', credentials: 'include' })
             .then(() => {
               window.location.href = NAV_BASE === '' ? '../index.html' : 'index.html';
             });

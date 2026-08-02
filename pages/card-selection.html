@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Card Selection - Savings</title>
+  <title>Card Perks - Savings</title>
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/nav.css">
   <link rel="stylesheet" href="../css/card-selection.css">
 </head>
-
 <body>
+
   <nav class="navbar">
     <div class="logo">Savings</div>
     <ul class="nav-links">
@@ -21,8 +20,9 @@
       <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
     </ul>
   </nav>
+
   <div class="page-container">
-    <h1>Select Your Bank & Card</h1>
+    <h1>Card Perks</h1>
 
     <section>
       <h3>Step 1: Choose a Bank</h3>
@@ -31,27 +31,28 @@
       </div>
     </section>
 
-    <section>
+    <section id="card-section" class="hidden">
       <h3>Step 2: Choose a Card</h3>
-      <div class="card-list" id="card-list">
-        <p class="placeholder-msg">Select a bank above to see its cards.</p>
+
+      <div class="filter-bar" id="type-filter-bar">
+        <button class="filter-btn active" data-filter="All">All</button>
+        <button class="filter-btn" data-filter="Debit">Debit</button>
+        <button class="filter-btn" data-filter="Credit">Credit</button>
       </div>
+
+      <div class="card-grid" id="card-grid"></div>
     </section>
 
-    <section>
+    <section id="benefits-section" class="hidden">
       <h3>Card Benefits</h3>
-      <div class="benefits-box" id="benefits-box">
-        <p class="placeholder-msg">Select a card above to view its benefits.</p>
-      </div>
-      <button id="save-card-btn" class="btn-primary hidden" style="margin-top: 1rem;">Save This Card to My
-        Account</button>
+      <div class="benefits-box" id="benefits-box"></div>
+      <button id="save-card-btn" class="btn-primary" style="margin-top: 1rem;">Save This Card to My Account</button>
       <p class="status-msg" id="save-card-status"></p>
     </section>
   </div>
 
-  <script src="../js/card-selection.js"></script>
   <script>const NAV_BASE = '';</script>
   <script src="../js/nav-auth.js"></script>
+  <script src="../js/card-selection.js"></script>
 </body>
-
 </html>

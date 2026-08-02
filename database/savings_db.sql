@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 24, 2026 at 12:44 AM
+-- Generation Time: Aug 02, 2026 at 08:31 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -90,11 +90,23 @@ CREATE TABLE `cards` (
 --
 
 INSERT INTO `cards` (`id`, `bank_id`, `network`, `type`, `tier`, `cashback`, `reward_points`, `emi`, `annual_fee`) VALUES
+('brac-master-classic', 'bracbank', 'Mastercard', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '350 BDT'),
+('brac-master-signature', 'bracbank', 'Mastercard', 'Credit', 'Signature', '9%', '4 pts per 50 BDT', 1, '4500 BDT'),
 ('brac-npsb-classic', 'bracbank', 'NPSB', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '300 BDT'),
+('brac-visa-classic', 'bracbank', 'Visa', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '300 BDT'),
+('brac-visa-gold', 'bracbank', 'Visa', 'Credit', 'Gold', '4%', '2 pts per 50 BDT', 1, '1800 BDT'),
 ('brac-visa-platinum', 'bracbank', 'Visa', 'Credit', 'Platinum', '8%', '3 pts per 50 BDT', 1, '3000 BDT'),
+('city-master-classic', 'citybank', 'Mastercard', 'Debit', 'Classic', '1.5%', '1 pt per 100 BDT', 0, '450 BDT'),
 ('city-master-signature', 'citybank', 'Mastercard', 'Credit', 'Signature', '10%', '4 pts per 50 BDT', 1, '5000 BDT'),
+('city-npsb-gold', 'citybank', 'NPSB', 'Credit', 'Gold', '5%', '2 pts per 50 BDT', 1, '1600 BDT'),
+('city-visa-classic', 'citybank', 'Visa', 'Debit', 'Classic', '2%', '1 pt per 50 BDT', 0, '500 BDT'),
+('city-visa-platinum', 'citybank', 'Visa', 'Credit', 'Platinum', '8%', '3 pts per 50 BDT', 1, '3200 BDT'),
+('dbbl-master-classic', 'dbbl', 'Mastercard', 'Debit', 'Classic', '1.5%', '1 pt per 100 BDT', 0, '400 BDT'),
 ('dbbl-master-gold', 'dbbl', 'Mastercard', 'Credit', 'Gold', '5%', '2 pts per 50 BDT', 1, '1500 BDT'),
-('dbbl-visa-classic', 'dbbl', 'Visa', 'Debit', 'Classic', '2%', '1 pt per 50 BDT', 0, '500 BDT');
+('dbbl-npsb-platinum', 'dbbl', 'NPSB', 'Credit', 'Platinum', '6%', '2 pts per 50 BDT', 1, '2500 BDT'),
+('dbbl-visa-classic', 'dbbl', 'Visa', 'Debit', 'Classic', '2%', '1 pt per 50 BDT', 0, '500 BDT'),
+('dbbl-visa-gold', 'dbbl', 'Visa', 'Credit', 'Gold', '4.5%', '2 pts per 50 BDT', 1, '1700 BDT'),
+('dbbl-visa-signature', 'dbbl', 'Visa', 'Credit', 'Signature', '7%', '3 pts per 50 BDT', 1, '4000 BDT');
 
 -- --------------------------------------------------------
 
@@ -199,7 +211,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `created_at`) VALUES
-(1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$c1dqHzhDjR8ZTWOE$5ad6a2b19c0c0877c358f9eb5b1ea61a25b640aae1f080dbd81106af5d4b8a03b7736c1124fdec50764ee3f0cd4f3cba95e5dec4f81b105374c1b60ec6d172ad', '2026-07-23 14:25:48');
+(1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$c1dqHzhDjR8ZTWOE$5ad6a2b19c0c0877c358f9eb5b1ea61a25b640aae1f080dbd81106af5d4b8a03b7736c1124fdec50764ee3f0cd4f3cba95e5dec4f81b105374c1b60ec6d172ad', '2026-07-23 14:25:48'),
+(2, 'Afid Mostakim', 'afidmostakim@gmail.com', 'scrypt:32768:8:1$5lcDvuaXS5Yp3oNM$7d7b1c194abc9ff66405eea2510e9e5d3f270591aced8f6168d7b89a59320042d1a01c50f9ba3529ce65dedb4c58f8643450dc334caad6ad560d10120c046bf2', '2026-08-02 06:13:08');
 
 -- --------------------------------------------------------
 
@@ -220,7 +233,9 @@ CREATE TABLE `user_cards` (
 
 INSERT INTO `user_cards` (`id`, `user_id`, `card_id`, `added_at`) VALUES
 (1, 1, 'brac-npsb-classic', '2026-07-23 22:13:27'),
-(2, 1, 'dbbl-visa-classic', '2026-07-23 22:26:35');
+(2, 1, 'dbbl-visa-classic', '2026-07-23 22:26:35'),
+(3, 2, 'city-master-signature', '2026-08-02 06:14:12'),
+(4, 2, 'brac-master-signature', '2026-08-02 06:25:47');
 
 --
 -- Indexes for dumped tables
@@ -312,13 +327,13 @@ ALTER TABLE `transactions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `user_cards`
 --
 ALTER TABLE `user_cards`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables

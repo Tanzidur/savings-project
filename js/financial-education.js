@@ -1,6 +1,6 @@
 const articleList = document.getElementById('article-list');
 
-fetch('http://127.0.0.1:5000/api/articles')
+fetch('/api/articles')
   .then(response => response.json())
   .then(articles => {
     renderArticles(articles);

@@ -1,20 +1,22 @@
 let banksData = [];
-let selectedBankId = null;
+let currentBankCards = [];
+let currentFilter = 'All';
 let currentSelectedCardId = null;
 
 const bankListEl = document.getElementById('bank-list');
-const cardListEl = document.getElementById('card-list');
+const cardSection = document.getElementById('card-section');
+const cardGrid = document.getElementById('card-grid');
+const benefitsSection = document.getElementById('benefits-section');
 const benefitsBoxEl = document.getElementById('benefits-box');
 
-// Fetch banks + cards from Flask/MySQL
-fetch('http://127.0.0.1:5000/api/banks')
+fetch('/api/banks')
   .then(response => response.json())
   .then(data => {
     banksData = data;
     renderBankButtons();
   })
   .catch(error => {
-    bankListEl.innerHTML = '<p class="placeholder-msg">Could not load banks. Is Flask running?</p>';
+    bankListEl.innerHTML = '<p class="loading-msg">Could not load banks. Is Flask running?</p>';
     console.error('Error loading banks:', error);
   });
 
@@ -30,33 +32,60 @@ function renderBankButtons() {
 }
 
 function selectBank(bankId, clickedBtn) {
-  selectedBankId = bankId;
-
   document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('selected'));
   clickedBtn.classList.add('selected');
 
-  benefitsBoxEl.innerHTML = '<p class="placeholder-msg">Select a card above to view its benefits.</p>';
-  document.getElementById('save-card-btn').classList.add('hidden');
-  document.getElementById('save-card-status').textContent = '';
+  benefitsSection.classList.add('hidden');
+  currentSelectedCardId = null;
 
   const bank = banksData.find(b => b.id === bankId);
-  renderCardButtons(bank.cards);
+  currentBankCards = bank.cards;
+
+  currentFilter = 'All';
+  document.querySelectorAll('#type-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('#type-filter-bar .filter-btn[data-filter="All"]').classList.add('active');
+
+  cardSection.classList.remove('hidden');
+  renderCardGrid();
 }
 
-function renderCardButtons(cards) {
-  cardListEl.innerHTML = '';
-  cards.forEach(card => {
-    const btn = document.createElement('button');
-    btn.className = 'card-btn';
-    btn.textContent = `${card.network} ${card.type} - ${card.tier}`;
-    btn.addEventListener('click', () => selectCard(card, btn));
-    cardListEl.appendChild(btn);
+document.querySelectorAll('#type-filter-bar .filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#type-filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderCardGrid();
+  });
+});
+
+function renderCardGrid() {
+  const filtered = currentFilter === 'All'
+    ? currentBankCards
+    : currentBankCards.filter(c => c.type === currentFilter);
+
+  cardGrid.innerHTML = '';
+
+  if (filtered.length === 0) {
+    cardGrid.innerHTML = '<p class="loading-msg">No cards match this filter.</p>';
+    return;
+  }
+
+  filtered.forEach(card => {
+    const tile = document.createElement('div');
+    tile.className = 'card-tile';
+    tile.innerHTML = `
+      <div class="card-tile-network">${card.network}</div>
+      <div class="card-tile-tier">${card.tier}</div>
+      <span class="card-tile-type">${card.type}</span>
+    `;
+    tile.addEventListener('click', () => selectCard(card, tile));
+    cardGrid.appendChild(tile);
   });
 }
 
-function selectCard(card, clickedBtn) {
-  document.querySelectorAll('.card-btn').forEach(b => b.classList.remove('selected'));
-  clickedBtn.classList.add('selected');
+function selectCard(card, clickedTile) {
+  document.querySelectorAll('.card-tile').forEach(t => t.classList.remove('selected'));
+  clickedTile.classList.add('selected');
 
   currentSelectedCardId = card.id;
 
@@ -79,13 +108,12 @@ function selectCard(card, clickedBtn) {
     </div>
   `;
 
-  document.getElementById('save-card-btn').classList.remove('hidden');
   document.getElementById('save-card-status').textContent = '';
+  benefitsSection.classList.remove('hidden');
 }
 
-// Save the currently selected card to the logged-in user's account
 document.getElementById('save-card-btn').addEventListener('click', () => {
-  fetch('http://127.0.0.1:5000/api/my-cards', {
+  fetch('/api/my-cards', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

@@ -1,4 +1,4 @@
-const API = 'http://127.0.0.1:5000/api';
+const API = '/api';
 
 fetch(`${API}/dashboard`, { credentials: 'include' })
   .then(res => {
@@ -12,21 +12,67 @@ fetch(`${API}/dashboard`, { credentials: 'include' })
     if (!data) return;
 
     document.getElementById('welcome-heading').textContent = `Welcome back, ${data.name}!`;
-    renderTransactionsList(data.transactions);
-    renderChart(data.transactions);
+
+    if (data.transactions && data.transactions.length > 0) {
+      renderTransactionsList(data.transactions);
+      renderChart(data.transactions);
+    } else {
+      document.getElementById('transactions-list').innerHTML = '<p>No transactions yet</p>';
+    }
   })
   .catch(err => {
     console.error(err);
+    document.getElementById('transactions-list').innerHTML = '<p>Error loading dashboard</p>';
   });
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-  fetch(`${API}/logout`, { method: 'POST', credentials: 'include' })
-    .then(() => window.location.href = '../index.html');
-});
+fetch('/api/my-cards', { credentials: 'include' })
+  .then(res => res.json())
+  .then(cards => {
+    renderMyCards(cards);
+  })
+  .catch(err => console.error('My cards error:', err));
+
+function renderMyCards(cards) {
+  const container = document.getElementById('my-cards-list');
+
+  if (!cards || cards.length === 0) {
+    container.innerHTML = '<p class="loading-msg">No cards saved yet. Add one from Card Perks.</p>';
+    return;
+  }
+
+  const grid = document.createElement('div');
+  grid.className = 'my-cards-grid';
+
+  cards.forEach(card => {
+    const tile = document.createElement('div');
+    tile.className = 'my-card-tile';
+    tile.innerHTML = `
+      <div class="card-tile-network">${card.network} ${card.tier}</div>
+      <div class="card-tile-bank">${card.bankName}</div>
+    `;
+    grid.appendChild(tile);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+const logoutBtn = document.getElementById('logout-btn');
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', () => {
+    fetch(`${API}/logout`, { method: 'POST', credentials: 'include' })
+      .then(() => window.location.href = '../index.html')
+      .catch(() => window.location.href = '../index.html');
+  });
+}
 
 function renderTransactionsList(transactions) {
   const list = document.getElementById('transactions-list');
   list.innerHTML = '';
+
+  if (!transactions || transactions.length === 0) {
+    list.innerHTML = '<p>No transactions yet</p>';
+    return;
+  }
 
   transactions.slice().reverse().forEach(t => {
     const row = document.createElement('div');
@@ -41,12 +87,16 @@ function renderTransactionsList(transactions) {
 }
 
 function renderChart(transactions) {
+  if (!transactions || transactions.length === 0) return;
+
   const totals = {};
   transactions.forEach(t => {
     totals[t.category] = (totals[t.category] || 0) + t.amount;
   });
 
   const ctx = document.getElementById('spending-chart');
+  if (!ctx) return;
+
   new Chart(ctx, {
     type: 'pie',
     data: {

@@ -69,3 +69,45 @@ body {
   color: #999;
   font-style: italic;
 }
+
+.my-cards-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  grid-column: 1 / -1;
+}
+
+.my-cards-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.my-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.my-card-tile {
+  border: 2px solid #eee;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.my-card-tile .card-tile-network {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.my-card-tile .card-tile-tier {
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin: 0.2rem 0 0.5rem 0;
+}
+
+.my-card-tile .card-tile-bank {
+  font-size: 0.8rem;
+  color: #999;
+}

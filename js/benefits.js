@@ -9,7 +9,7 @@ const merchantGrid = document.getElementById('merchant-grid');
 const merchantSearch = document.getElementById('merchant-search');
 
 // Load offers
-fetch('http://127.0.0.1:5000/api/offers')
+fetch('/api/offers')
   .then(response => response.json())
   .then(data => {
     offersData = data;
@@ -22,7 +22,7 @@ fetch('http://127.0.0.1:5000/api/offers')
   });
 
 // Load merchants
-fetch('http://127.0.0.1:5000/api/merchants')
+fetch('/api/merchants')
   .then(response => response.json())
   .then(data => {
     merchantsData = data;
