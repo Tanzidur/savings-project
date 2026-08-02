@@ -10,6 +10,8 @@ app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_COOKIE_SECURE'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
 
+# Frontend and API are served from the same origin (Flask serves everything),
+# so CORS just needs to allow credentials through.
 CORS(app, supports_credentials=True)
 
 app.config['MYSQL_HOST'] = 'localhost'

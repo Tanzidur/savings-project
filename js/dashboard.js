@@ -21,7 +21,7 @@ fetch(`${API}/dashboard`, { credentials: 'include' })
     }
   })
   .catch(err => {
-    console.error(err);
+    console.error('Dashboard error:', err);
     document.getElementById('transactions-list').innerHTML = '<p>Error loading dashboard</p>';
   });
 
@@ -56,6 +56,7 @@ function renderMyCards(cards) {
   container.innerHTML = '';
   container.appendChild(grid);
 }
+
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
