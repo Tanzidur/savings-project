@@ -38,3 +38,26 @@
   padding: 8px 18px;
   border-radius: var(--radius-sm);
 }
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #ddd;
+  border-top-color: var(--color-primary, #0b6e4f);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #999;
+  font-style: italic;
+  padding: 1rem 0;
+}

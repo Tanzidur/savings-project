@@ -1,0 +1,144 @@
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background, var(--color-bg));
+  margin: 0;
+}
+
+.page-container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-container h1 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.offer-summary-box {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.offer-summary-box h3 {
+  margin: 0 0 0.3rem 0;
+}
+
+.payout-card-option {
+  border: 2px solid #eee;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+}
+
+.payout-card-option:hover {
+  border-color: var(--color-primary);
+}
+
+.payout-card-option.selected {
+  border-color: var(--color-primary);
+  background: rgba(11, 110, 79, 0.05);
+}
+
+.payout-card-info strong {
+  display: block;
+}
+
+.payout-card-info span {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.loading-msg {
+  color: #999;
+  font-style: italic;
+  text-align: center;
+}
+
+.success-box {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.success-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+}
+
+.success-box h1 {
+  color: var(--color-primary);
+}
+
+.hidden {
+  display: none;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-group input.invalid,
+input.invalid {
+  border-color: #c0392b;
+}
+
+.btn-primary {
+  padding: 0.85rem;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.btn-primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

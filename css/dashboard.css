@@ -111,3 +111,10 @@ body {
   font-size: 0.8rem;
   color: #999;
 }
+
+.transaction-offer-tag {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-style: italic;
+  margin-top: 0.1rem;
+}

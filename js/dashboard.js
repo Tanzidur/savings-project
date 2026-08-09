@@ -79,7 +79,10 @@ function renderTransactionsList(transactions) {
     const row = document.createElement('div');
     row.className = 'transaction-row';
     row.innerHTML = `
-      <span class="transaction-category">${t.category}</span>
+      <div>
+        <span class="transaction-category">${t.category}</span>
+        ${t.offerTitle ? `<div class="transaction-offer-tag">via ${t.offerTitle}</div>` : ''}
+      </div>
       <span>${t.amount.toFixed(2)} BDT</span>
       <span class="transaction-date">${t.date}</span>
     `;

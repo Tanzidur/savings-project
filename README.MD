@@ -80,16 +80,18 @@ Go to **http://127.0.0.1:5000/** in your browser (not Live Server — Flask now 
 1. Landing Page ✅ — Tanzidur
 2. Login / Register ✅ — Tanzidur (real auth, hashed passwords, persistent sessions)
 3. Profile Management — on hold, not connected to real users yet
-4. Card Perks (was Card Selection) ✅ — connected to MySQL, "Save to My Account" working
-5. Deals & Offers ✅ — connected to MySQL, includes "Browse by Merchant" tab (old Merchant Directory merged in)
-6. Financial Education ✅ — connected to MySQL
-7. Dashboard ✅ — shows logged-in user's name, spending pie chart (Chart.js), recent transactions, handles new users with no transactions yet
-8. Admin Panel ✅ — hardcoded admin login, CRUD for banks/cards/merchants (separate from user accounts)
+4. Card Perks (was Card Selection) ✅ — connected to MySQL, filterable grid, "Save to My Account" working
+5. Deals & Offers ✅ — connected to MySQL, "Browse by Merchant" tab, links to Offer Detail page
+6. Offer Detail ✅ — full offer info, "Pay / Redeem" → Payout
+7. Payout ✅ — pick a saved card, static "Payment Successful" screen (no real transaction)
+8. Financial Education ✅ — connected to MySQL
+9. Dashboard ✅ — logged-in user's name, spending pie chart, recent transactions, saved cards ("My Cards")
+10. Admin Panel ✅ — hardcoded admin login, CRUD for banks/cards/merchants (separate from user accounts)
 
 ## Update 1 (submitted)
 4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route. Landing page included as static context.
 
-## Update 2 (in progress)
+## Update 2 (done, submission in progress)
 Faculty feedback after Update 1: add real login, and make offers actually actionable (not just browsable). Also restructured naming since Card Selection and Benefits/Offers were confusing people.
 
 ### Renaming / restructuring — done
@@ -101,8 +103,9 @@ Faculty feedback after Update 1: add real login, and make offers actually action
 - `users` table, hashed passwords (werkzeug, not plain text).
 - `/api/register`, `/api/login`, `/api/logout`, `/api/session` — real Flask sessions, now permanent (24hr) so login survives browser restarts.
 - Navbar shows Login link when logged out, or [Name] + Logout when logged in, on every page (`js/nav-auth.js`).
-- Dashboard page — welcome message, spending pie chart, transaction list. Pulls from a `transactions` table. Handles new users with zero transactions gracefully instead of breaking.
+- Dashboard page — welcome message, spending pie chart, transaction list, and a "My Cards" section showing saved cards. Pulls from a `transactions` table. Handles new users with zero transactions gracefully instead of breaking.
 - `user_cards` table + "Save This Card to My Account" button on Card Perks — working.
+- Card Perks rebuilt as a filterable grid (All/Debit/Credit) instead of flat buttons, to handle 20+ cards cleanly.
 - Admin CRUD is separate from user accounts, already built, staying as-is.
 
 ### Architecture change: single server
@@ -111,18 +114,19 @@ Faculty feedback after Update 1: add real login, and make offers actually action
 - All fetch calls switched from full URLs to relative paths (`/api/...`).
 - Tradeoff: no more Live Server auto-refresh — manual browser refresh needed after edits.
 
-### 2. Offer → detail → pay → success flow — not started yet
-- Click a deal card → detail view (full description, terms, expiry, which merchant/bank).
-- "Pay / Redeem" button → payout page → pick a saved card (or add a new one) → confirm.
-- Payout ends on a static "Payment Successful" screen. No real transaction, no payment gateway, no transaction history beyond what Dashboard already shows.
+### 2. Offer → detail → pay → success flow — done
+- Click a deal card on Deals & Offers → goes to `offer-detail.html?offerId=X`, a separate page (not a modal — a modal version was tried first but caused a stuck-open/broken-close-button bug that was hard to debug, so switched to a normal page load instead).
+- Deal cards themselves were trimmed down to just category/title/merchant/discount + "View Details →", since the full description and validity date were redundant on the card once the detail page existed.
+- Detail page → "Pay / Redeem This Offer" → `payout.html?offerId=X` → pick from saved cards (or a message prompting to add one first), enter how much was spent → "Confirm Payment" → static "Payment Successful" screen.
+- Redemption now actually writes a real row to `transactions` (category + amount the user entered), tagged with `offer_title` so Dashboard can show "via [Offer Name]" under that entry — distinguishes real redeemed purchases from other spending without needing a separate list. Decided against a fully separate "redeemed offers" list since a redemption is still real spending and belongs in the spending chart.
+- Still no real payment gateway — the amount is self-reported by the user, not verified by any processor. Fine for a prototype, worth stating plainly if asked.
 
-### 3. Small polish targets — not started yet
-- Loading spinners instead of plain "Loading..." text.
-- Proper empty/error states (e.g. "No offers found") instead of bare text.
-- Toast-style confirmations instead of `alert()`.
-- Basic inline form validation feedback (e.g. red border on invalid email).
-- Mobile responsiveness pass on existing pages.
-- Simple 404 page instead of browser default.
+### 3. Small polish targets — done (except mobile)
+- Toast notifications (`js/toast.js`, `css/toast.css`) replacing `alert()` — used on Login/Register and Payout.
+- Loading spinners (`.spinner`/`.loading-state` in `css/nav.css`) replacing plain "Loading..." text across Card Perks, Deals & Offers, Financial Education, Dashboard, Offer Detail, Payout.
+- Inline form validation (red border + toast) on Login/Register email and Payout amount.
+- Custom 404 page (`pages/404.html`) — wired into Flask's catch-all route directly (not `@app.errorhandler`, since the catch-all route already handles unmatched paths itself and would shadow the error handler).
+- Mobile responsiveness pass — skipped for now, not a priority for this round.
 
 ## Progress Log
 - 14/07 — Project structure set up. Landing page built and styled.
@@ -134,7 +138,7 @@ Faculty feedback after Update 1: add real login, and make offers actually action
 - 16/07 — Fixed venv being tracked in git.
 - 19/07 — Added shared navbar to all pages. Fixed font mismatch, navbar spacing, and login page layout bug. Planned Update 2 (real auth + personalization).
 - 19/07 — Exported database to `database/savings_db.sql` so teammates can set up MySQL locally. Added step-by-step setup guide to README.
-- 22/07 — Faculty feedback after Update 1: add real login + make offers actionable. Planned Update 2: real auth, "Card Perks" vs "Deals & Offers" rename, folding Merchant Directory into Deals & Offers, offer→pay→success flow, small UX polish. Admin CRUD pushed to Update 3.
-- 24/07 — Built real login/register (users table, hashed passwords, Flask sessions). Fixed cookie bug caused by localhost vs 127.0.0.1 mismatch. Built Dashboard page with spending pie chart and transaction list. Added `user_cards` table + "Save This Card to My Account" on Card Perks page. Added shared navbar login/logout state (`nav-auth.js`). Merged Merchant Directory into Deals & Offers as a "Browse by Merchant" tab; deleted old merchant-directory files.
-- 02/08 — Teammate added static file serving to Flask and tightened CORS — switched the whole project to run through Flask as a single server instead of splitting frontend (Live Server) and backend (Flask). Updated all fetch calls to relative paths. Fixed session persistence so login survives browser restarts (permanent sessions, 24hr). Reverted an accidental security downgrade (HttpOnly cookie flag). Cleaned up debug logging left in app.py, login.js, dashboard.js. Kept useful defensive checks added for users with no transactions yet.
-- 02/08 — Rebuilt Card Perks as a filterable grid (Debit/Credit) to handle 20+ cards. Added "My Cards" section to Dashboard.
+- 19/07 — Faculty feedback after Update 1: add real login + make offers actionable. Planned Update 2: real auth, "Card Perks" vs "Deals & Offers" rename, folding Merchant Directory into Deals & Offers, offer→pay→success flow, small UX polish. Admin CRUD pushed to Update 3.
+- 19/07 — Built real login/register (users table, hashed passwords, Flask sessions). Fixed cookie bug caused by localhost vs 127.0.0.1 mismatch. Built Dashboard page with spending pie chart and transaction list. Added `user_cards` table + "Save This Card to My Account" on Card Perks page. Added shared navbar login/logout state (`nav-auth.js`). Merged Merchant Directory into Deals & Offers as a "Browse by Merchant" tab; deleted old merchant-directory files.
+- 20/07 — Teammate added static file serving to Flask and tightened CORS — switched the whole project to run through Flask as a single server instead of splitting frontend (Live Server) and backend (Flask). Updated all fetch calls to relative paths. Fixed session persistence so login survives browser restarts (permanent sessions, 24hr). Reverted an accidental security downgrade (HttpOnly cookie flag). Cleaned up debug logging left in app.py, login.js, dashboard.js. Kept useful defensive checks added for users with no transactions yet.
+- 09/08 — Rebuilt Card Perks as a filterable grid (All/Debit/Credit) to handle 20+ cards. Added "My Cards" section to Dashboard. Tried a modal for offer details first — caused a stuck-open/unresponsive-close-button bug, switched to a proper separate page instead. Built Offer Detail page and Payout page (pick saved card → static "Payment Successful" screen). Trimmed offer cards on Deals & Offers down to essentials since full info is now on the detail page.

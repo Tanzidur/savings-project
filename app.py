@@ -33,7 +33,7 @@ def serve_file(path):
     try:
         return send_from_directory('.', path)
     except Exception:
-        return jsonify({"error": "File not found"}), 404
+        return send_from_directory('.', 'pages/404.html'), 404
 
 
 # ---------- BANKS & CARDS ----------
@@ -216,11 +216,11 @@ def get_dashboard():
 
         user_id = session['user_id']
         cur = mysql.connection.cursor()
-        cur.execute("SELECT category, amount, transaction_date FROM transactions WHERE user_id = %s ORDER BY transaction_date", (user_id,))
+        cur.execute("SELECT category, amount, transaction_date, offer_title FROM transactions WHERE user_id = %s ORDER BY transaction_date", (user_id,))
         rows = cur.fetchall()
         cur.close()
 
-        transactions = [{"category": r[0], "amount": float(r[1]), "date": str(r[2])} for r in rows]
+        transactions = [{"category": r[0], "amount": float(r[1]), "date": str(r[2]), "offerTitle": r[3]} for r in rows]
 
         return jsonify({
             "name": session.get('user_name'),
@@ -283,6 +283,43 @@ def add_my_card():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/redeem', methods=['POST'])
+def redeem_offer():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        user_id = session['user_id']
+        data = request.get_json()
+        category = data.get('category')
+        amount = data.get('amount')
+        offer_title = data.get('offerTitle')
+
+        if not category or not amount:
+            return jsonify({"success": False, "error": "Missing category or amount"}), 400
+
+        try:
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError
+        except ValueError:
+            return jsonify({"success": False, "error": "Invalid amount"}), 400
+
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title) VALUES (%s, %s, %s, CURDATE(), %s)",
+            (user_id, category, amount, offer_title)
+        )
+        mysql.connection.commit()
+        cur.close()
+
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.errorhandler(404)
+def not_found(e):
+    return send_from_directory('.', 'pages/404.html'), 404
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

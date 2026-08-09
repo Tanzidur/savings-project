@@ -16,7 +16,6 @@ fetch('/api/banks')
     renderBankButtons();
   })
   .catch(error => {
-    bankListEl.innerHTML = '<p class="loading-msg">Could not load banks. Is Flask running?</p>';
     console.error('Error loading banks:', error);
   });
 

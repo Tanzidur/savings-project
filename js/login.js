@@ -19,11 +19,23 @@ registerTab.addEventListener('click', () => {
 
 const API = '/api';
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
-  const email = document.getElementById('login-email').value;
+  const emailInput = document.getElementById('login-email');
+  const email = emailInput.value;
   const password = document.getElementById('login-password').value;
+
+  if (!isValidEmail(email)) {
+    emailInput.classList.add('invalid');
+    showToast('Please enter a valid email address', 'error');
+    return;
+  }
+  emailInput.classList.remove('invalid');
 
   fetch(`${API}/login`, {
     method: 'POST',
@@ -36,11 +48,11 @@ loginForm.addEventListener('submit', (e) => {
     if (data.success) {
       window.location.href = 'dashboard.html';
     } else {
-      alert(data.error || 'Login failed');
+      showToast(data.error || 'Login failed', 'error');
     }
   })
   .catch(err => {
-    alert('Could not reach server. Is Flask running?');
+    showToast('Could not reach server. Is Flask running?', 'error');
     console.error(err);
   });
 });
@@ -49,12 +61,20 @@ registerForm.addEventListener('submit', (e) => {
   e.preventDefault();
 
   const name = document.getElementById('register-name').value;
-  const email = document.getElementById('register-email').value;
+  const emailInput = document.getElementById('register-email');
+  const email = emailInput.value;
   const password = document.getElementById('register-password').value;
   const confirm = document.getElementById('register-confirm').value;
 
+  if (!isValidEmail(email)) {
+    emailInput.classList.add('invalid');
+    showToast('Please enter a valid email address', 'error');
+    return;
+  }
+  emailInput.classList.remove('invalid');
+
   if (password !== confirm) {
-    alert('Passwords do not match');
+    showToast('Passwords do not match', 'error');
     return;
   }
 
@@ -69,11 +89,11 @@ registerForm.addEventListener('submit', (e) => {
     if (data.success) {
       window.location.href = 'dashboard.html';
     } else {
-      alert(data.error || 'Registration failed');
+      showToast(data.error || 'Registration failed', 'error');
     }
   })
   .catch(err => {
-    alert('Could not reach server. Is Flask running?');
+    showToast('Could not reach server. Is Flask running?', 'error');
     console.error(err);
   });
 });

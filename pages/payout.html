@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payout - Savings</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/payout.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Savings</div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="benefits.html">Deals & Offers</a></li>
+      <li><a href="financial-education.html">Financial Education</a></li>
+      <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-container">
+
+    <div id="select-card-view">
+      <h1>Choose a Card to Pay With</h1>
+      <div id="offer-summary" class="offer-summary-box"></div>
+        <div class="form-group" style="margin-bottom:1.5rem;">
+            <label for="spend-amount">How much did you spend? (BDT)</label>
+            <input type="number" id="spend-amount" min="1" step="0.01" placeholder="e.g. 1200" required>
+        </div>
+      <div id="my-cards-container">
+        <div class="loading-state"><div class="spinner"></div> Loading your cards...</div>
+      </div>
+
+      <button id="confirm-pay-btn" class="btn-primary hidden" style="width:100%; margin-top:1.5rem;">Confirm Payment</button>
+    </div>
+
+    <div id="success-view" class="hidden">
+      <div class="success-box">
+        <div class="success-icon">&#10003;</div>
+        <h1>Payment Successful</h1>
+        <p id="success-detail"></p>
+        <a href="benefits.html" class="btn-primary" style="display:inline-block; text-decoration:none; margin-top:1.5rem;">Back to Deals & Offers</a>
+      </div>
+    </div>
+
+  </div>
+
+  <script>const NAV_BASE = '';</script>
+  <script src="../js/nav-auth.js"></script>
+  <script src="../js/toast.js"></script>
+  <script src="../js/payout.js"></script>
+  <script src="../js/payout.js"></script>
+
+</body>
+</html>

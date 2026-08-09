@@ -129,15 +129,6 @@ body {
   margin-bottom: 0.6rem;
 }
 
-.offer-footer {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #999;
-  border-top: 1px solid #eee;
-  padding-top: 0.6rem;
-}
-
 .merchant-address {
   font-size: 0.8rem;
   color: #999;
@@ -150,4 +141,12 @@ body {
 .loading-msg {
   color: #999;
   font-style: italic;
+}
+
+.view-details-link {
+  display: inline-block;
+  color: var(--color-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
 }

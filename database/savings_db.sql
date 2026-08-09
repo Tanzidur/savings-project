@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 02, 2026 at 08:31 AM
+-- Generation Time: Aug 09, 2026 at 01:48 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -177,20 +177,29 @@ CREATE TABLE `transactions` (
   `user_id` int(11) NOT NULL,
   `category` varchar(50) DEFAULT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
-  `transaction_date` date DEFAULT NULL
+  `transaction_date` date DEFAULT NULL,
+  `offer_title` varchar(150) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `transactions`
 --
 
-INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`) VALUES
-(1, 1, 'Shopping', 3500.00, '2026-07-01'),
-(2, 1, 'Dining', 1200.00, '2026-07-05'),
-(3, 1, 'Groceries', 2800.00, '2026-07-08'),
-(4, 1, 'Entertainment', 900.00, '2026-07-12'),
-(5, 1, 'Travel', 4500.00, '2026-07-15'),
-(6, 1, 'Shopping', 1800.00, '2026-07-18');
+INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`) VALUES
+(1, 1, 'Shopping', 3500.00, '2026-07-01', NULL),
+(2, 1, 'Dining', 1200.00, '2026-07-05', NULL),
+(3, 1, 'Groceries', 2800.00, '2026-07-08', NULL),
+(4, 1, 'Entertainment', 900.00, '2026-07-12', NULL),
+(5, 1, 'Travel', 4500.00, '2026-07-15', NULL),
+(6, 1, 'Shopping', 1800.00, '2026-07-18', NULL),
+(7, 2, 'Entertainment', 200.00, '2026-08-09', NULL),
+(8, 2, 'Entertainment', 1200.00, '2026-08-09', NULL),
+(9, 2, 'Travel', 25000.00, '2026-08-09', NULL),
+(10, 2, 'Travel', 555555.00, '2026-08-09', NULL),
+(11, 2, 'Travel', 1500.00, '2026-08-09', NULL),
+(12, 2, 'Dining', 500000.00, '2026-08-09', '15% Off Dine-in'),
+(13, 2, 'Shopping', 99999999.99, '2026-08-09', '10% Cashback Groceries'),
+(14, 1, 'Travel', 12000.00, '2026-08-09', '5% Off Flight Bookings');
 
 -- --------------------------------------------------------
 
@@ -235,7 +244,8 @@ INSERT INTO `user_cards` (`id`, `user_id`, `card_id`, `added_at`) VALUES
 (1, 1, 'brac-npsb-classic', '2026-07-23 22:13:27'),
 (2, 1, 'dbbl-visa-classic', '2026-07-23 22:26:35'),
 (3, 2, 'city-master-signature', '2026-08-02 06:14:12'),
-(4, 2, 'brac-master-signature', '2026-08-02 06:25:47');
+(4, 2, 'brac-master-signature', '2026-08-02 06:25:47'),
+(5, 2, 'dbbl-visa-signature', '2026-08-09 10:19:18');
 
 --
 -- Indexes for dumped tables
@@ -321,7 +331,7 @@ ALTER TABLE `offers`
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -333,7 +343,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_cards`
 --
 ALTER TABLE `user_cards`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- Constraints for dumped tables

@@ -56,7 +56,7 @@ function showMerchantsView() {
 }
 
 document.querySelector('[data-view="offers"]').addEventListener('click', () => {
-  showOffersView(true); // manually clicking this tab always resets to full list
+  showOffersView(true);
 });
 
 document.querySelector('[data-view="merchants"]').addEventListener('click', () => {
@@ -95,17 +95,17 @@ function renderOffers(offers) {
   offers.forEach(offer => {
     const card = document.createElement('div');
     card.className = 'offer-card';
+    card.style.cursor = 'pointer';
     card.innerHTML = `
-      <span class="offer-category">${offer.category}</span>
-      <h3>${offer.title}</h3>
-      <p class="offer-merchant">${offer.merchant}</p>
-      <p class="offer-discount">${offer.discount}</p>
-      <p class="offer-desc">${offer.description}</p>
-      <div class="offer-footer">
-        <span>${offer.bankName}</span>
-        <span>Valid until ${offer.validUntil}</span>
-      </div>
+    <span class="offer-category">${offer.category}</span>
+    <h3>${offer.title}</h3>
+    <p class="offer-merchant">${offer.merchant}</p>
+    <p class="offer-discount">${offer.discount}</p>
+    <span class="view-details-link">View Details &rarr;</span>
     `;
+    card.addEventListener('click', () => {
+      window.location.href = `offer-detail.html?offerId=${offer.id}`;
+    });
     offersGrid.appendChild(card);
   });
 }
@@ -131,7 +131,7 @@ function renderMerchants(merchants) {
 
     card.addEventListener('click', () => {
       const filtered = offersData.filter(o => o.merchant === m.name);
-      showOffersView(false); // switch tabs WITHOUT resetting, since we're about to set our own filter
+      showOffersView(false);
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       renderOffers(filtered.length > 0 ? filtered : offersData);
     });
