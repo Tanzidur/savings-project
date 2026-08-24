@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Offers - Admin</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="banks.html">Banks</a></li>
+      <li><a href="cards.html">Cards</a></li>
+      <li><a href="offers.html" class="active">Offers</a></li>
+      <li><a href="merchants.html">Merchants</a></li>
+      <li><a href="articles.html">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Offers</h1>
+        <p>Expired offers automatically show as expired to customers once the validity date passes.</p>
+      </div>
+      <button class="btn-add" id="add-offer-btn">+ Add Offer</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Merchant</th>
+            <th>Bank</th>
+            <th>Discount</th>
+            <th>Valid Until</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="offers-tbody">
+          <tr class="empty-row"><td colspan="7">Loading offers...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <div class="modal-overlay hidden" id="offer-modal">
+    <div class="modal">
+      <h2 id="offer-modal-title">Add Offer</h2>
+      <form id="offer-form">
+        <input type="hidden" id="offer-editing-id">
+
+        <div class="form-group">
+          <label for="offer-title-input">Title</label>
+          <input type="text" id="offer-title-input" placeholder="e.g. 20% Off Electronics" required>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-merchant-input">Merchant</label>
+          <input type="text" id="offer-merchant-input" placeholder="e.g. Daraz" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="offer-category-input">Category</label>
+            <input type="text" id="offer-category-input" placeholder="e.g. Shopping" required>
+          </div>
+          <div class="form-group">
+            <label for="offer-discount-input">Discount</label>
+            <input type="text" id="offer-discount-input" placeholder="e.g. 20% or BOGO" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-bank-select">Bank</label>
+          <select id="offer-bank-select" required>
+            <option value="">Loading banks...</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-valid-until-input">Valid Until</label>
+          <input type="date" id="offer-valid-until-input" required>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-description-input">Description</label>
+          <textarea id="offer-description-input" placeholder="Full offer details shown on the offer page"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="offer-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary-modal">Save Offer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/offers.js"></script>
+</body>
+</html>

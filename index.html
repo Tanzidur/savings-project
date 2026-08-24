@@ -50,11 +50,23 @@
             <a href="#">About</a>
             <a href="#">Contact</a>
             <a href="#">Privacy Policy</a>
+            <a href="admin/login.html" id="footer-admin-link">Admin</a>
         </div>
     </footer>
     <script src="js/script.js"></script>
     <script>const NAV_BASE = 'pages/';</script>
     <script src="js/nav-auth.js"></script>
+    <script>
+    fetch('/api/session', { credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+        if (data.loggedIn) {
+            const adminLink = document.getElementById('footer-admin-link');
+            if (adminLink) adminLink.style.display = 'none';
+        }
+        })
+        .catch(err => console.error('Session check failed:', err));
+    </script>
 </body>
 
 </html>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 09, 2026 at 01:48 PM
+-- Generation Time: Aug 24, 2026 at 06:27 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -63,6 +63,7 @@ CREATE TABLE `banks` (
 --
 
 INSERT INTO `banks` (`id`, `name`) VALUES
+('afebank', 'AFE BANK'),
 ('bracbank', 'BRAC Bank'),
 ('citybank', 'City Bank'),
 ('dbbl', 'Dutch-Bangla Bank');
@@ -90,6 +91,8 @@ CREATE TABLE `cards` (
 --
 
 INSERT INTO `cards` (`id`, `bank_id`, `network`, `type`, `tier`, `cashback`, `reward_points`, `emi`, `annual_fee`) VALUES
+('AFE CARD', 'afebank', 'MasterCard', 'Credit', 'Signature', '10', '2 pts per 50 bdt', 1, '2000'),
+('AFE Enamul Card', 'afebank', 'Visa', 'Debit', 'Signature', '5', '2 pts per 50 bdt', 1, '1500'),
 ('brac-master-classic', 'bracbank', 'Mastercard', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '350 BDT'),
 ('brac-master-signature', 'bracbank', 'Mastercard', 'Credit', 'Signature', '9%', '4 pts per 50 BDT', 1, '4500 BDT'),
 ('brac-npsb-classic', 'bracbank', 'NPSB', 'Debit', 'Classic', '1%', '1 pt per 100 BDT', 0, '300 BDT'),
@@ -164,7 +167,14 @@ INSERT INTO `offers` (`id`, `merchant`, `title`, `description`, `category`, `dis
 (7, 'Star Cineplex', '30% Off Popcorn Combo', 'Discount on combo purchases with any BRAC Bank card', 'Entertainment', '30%', 'bracbank', '2026-09-30'),
 (8, 'Pizza Hut', 'Free Drink with Large Pizza', 'Complimentary soft drink with any large pizza order', 'Dining', 'Free Item', 'citybank', '2026-11-15'),
 (9, 'Shwapno', '5% Extra on Weekend Shopping', 'Additional cashback on top of regular offer, Sat-Sun', 'Shopping', '5%', 'dbbl', '2026-10-31'),
-(10, 'Biman Bangladesh', '10% Off Seat Upgrades', 'Discount on business class upgrades for existing bookings', 'Travel', '10%', 'bracbank', '2027-01-31');
+(10, 'Biman Bangladesh', '10% Off Seat Upgrades', 'Discount on business class upgrades for existing bookings', 'Travel', '10%', 'bracbank', '2027-01-31'),
+(11, 'KFC', 'Buy 1 Get 1 Fried Chicken', 'BOGO on all fried chicken buckets', 'Dining', 'BOGO', 'dbbl', '2026-06-30'),
+(12, 'Aarong', '15% Off Eid Collection', 'Discount on all Eid collection items', 'Shopping', '15%', 'bracbank', '2026-07-15'),
+(13, 'Jamuna Future Park', '10% Off Food Court', 'Discount at all food court outlets', 'Dining', '10%', 'citybank', '2026-08-01'),
+(14, 'Chaldal', '20% Off First Order', 'New user discount on groceries', 'Shopping', '20%', 'dbbl', '2026-12-31'),
+(15, 'US-Bangla Airlines', '7% Off Domestic Flights', 'Discount on all domestic routes', 'Travel', '7%', 'citybank', '2026-11-30'),
+(16, 'Coffee World', 'Free Pastry with Coffee', 'Complimentary pastry with any coffee purchase', 'Dining', 'Free Item', 'bracbank', '2026-10-15'),
+(17, 'Apex', '25% Off Footwear', 'Discount on all footwear items', 'Shopping', '25%', 'citybank', '2027-02-28');
 
 -- --------------------------------------------------------
 
@@ -178,28 +188,32 @@ CREATE TABLE `transactions` (
   `category` varchar(50) DEFAULT NULL,
   `amount` decimal(10,2) DEFAULT NULL,
   `transaction_date` date DEFAULT NULL,
-  `offer_title` varchar(150) DEFAULT NULL
+  `offer_title` varchar(150) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `transactions`
 --
 
-INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`) VALUES
-(1, 1, 'Shopping', 3500.00, '2026-07-01', NULL),
-(2, 1, 'Dining', 1200.00, '2026-07-05', NULL),
-(3, 1, 'Groceries', 2800.00, '2026-07-08', NULL),
-(4, 1, 'Entertainment', 900.00, '2026-07-12', NULL),
-(5, 1, 'Travel', 4500.00, '2026-07-15', NULL),
-(6, 1, 'Shopping', 1800.00, '2026-07-18', NULL),
-(7, 2, 'Entertainment', 200.00, '2026-08-09', NULL),
-(8, 2, 'Entertainment', 1200.00, '2026-08-09', NULL),
-(9, 2, 'Travel', 25000.00, '2026-08-09', NULL),
-(10, 2, 'Travel', 555555.00, '2026-08-09', NULL),
-(11, 2, 'Travel', 1500.00, '2026-08-09', NULL),
-(12, 2, 'Dining', 500000.00, '2026-08-09', '15% Off Dine-in'),
-(13, 2, 'Shopping', 99999999.99, '2026-08-09', '10% Cashback Groceries'),
-(14, 1, 'Travel', 12000.00, '2026-08-09', '5% Off Flight Bookings');
+INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`, `description`) VALUES
+(1, 1, 'Shopping', 3500.00, '2026-07-01', NULL, NULL),
+(2, 1, 'Dining', 1200.00, '2026-07-05', NULL, NULL),
+(3, 1, 'Groceries', 2800.00, '2026-07-08', NULL, NULL),
+(4, 1, 'Entertainment', 900.00, '2026-07-12', NULL, NULL),
+(5, 1, 'Travel', 4500.00, '2026-07-15', NULL, NULL),
+(6, 1, 'Shopping', 1800.00, '2026-07-18', NULL, NULL),
+(7, 2, 'Entertainment', 200.00, '2026-08-09', NULL, NULL),
+(8, 2, 'Entertainment', 1200.00, '2026-08-09', NULL, NULL),
+(9, 2, 'Travel', 25000.00, '2026-08-09', NULL, NULL),
+(10, 2, 'Travel', 555555.00, '2026-08-09', NULL, NULL),
+(11, 2, 'Travel', 1500.00, '2026-08-09', NULL, NULL),
+(12, 2, 'Dining', 500000.00, '2026-08-09', '15% Off Dine-in', NULL),
+(13, 2, 'Shopping', 99999999.99, '2026-08-09', '10% Cashback Groceries', NULL),
+(14, 1, 'Travel', 12000.00, '2026-08-09', '5% Off Flight Bookings', NULL),
+(15, 1, 'Groceries', 148.33, '2026-08-23', NULL, 'Groceries at Cedar Spar'),
+(16, 1, 'Dining', 2555.00, '2026-08-23', 'Free Drink with Large Pizza', 'Free Drink with Large Pizza'),
+(17, 1, 'Travel', 25252.00, '2026-08-24', '10% Off Seat Upgrades', '10% Off Seat Upgrades');
 
 -- --------------------------------------------------------
 
@@ -220,7 +234,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `created_at`) VALUES
-(1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$c1dqHzhDjR8ZTWOE$5ad6a2b19c0c0877c358f9eb5b1ea61a25b640aae1f080dbd81106af5d4b8a03b7736c1124fdec50764ee3f0cd4f3cba95e5dec4f81b105374c1b60ec6d172ad', '2026-07-23 14:25:48'),
+(1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$J5TK20WAdpBbj79O$7c5565fee97bb2a8bba084216594905ba2759a9452f5bd76333db42399d9939b4ca510b7bdccf7b78376ae9ec5cde099ba10a08d0d0d6417210370c0ccda92bd', '2026-07-23 14:25:48'),
 (2, 'Afid Mostakim', 'afidmostakim@gmail.com', 'scrypt:32768:8:1$5lcDvuaXS5Yp3oNM$7d7b1c194abc9ff66405eea2510e9e5d3f270591aced8f6168d7b89a59320042d1a01c50f9ba3529ce65dedb4c58f8643450dc334caad6ad560d10120c046bf2', '2026-08-02 06:13:08');
 
 -- --------------------------------------------------------
@@ -242,10 +256,10 @@ CREATE TABLE `user_cards` (
 
 INSERT INTO `user_cards` (`id`, `user_id`, `card_id`, `added_at`) VALUES
 (1, 1, 'brac-npsb-classic', '2026-07-23 22:13:27'),
-(2, 1, 'dbbl-visa-classic', '2026-07-23 22:26:35'),
 (3, 2, 'city-master-signature', '2026-08-02 06:14:12'),
 (4, 2, 'brac-master-signature', '2026-08-02 06:25:47'),
-(5, 2, 'dbbl-visa-signature', '2026-08-09 10:19:18');
+(5, 2, 'dbbl-visa-signature', '2026-08-09 10:19:18'),
+(14, 1, 'brac-visa-gold', '2026-08-23 22:05:02');
 
 --
 -- Indexes for dumped tables
@@ -325,13 +339,13 @@ ALTER TABLE `merchants`
 -- AUTO_INCREMENT for table `offers`
 --
 ALTER TABLE `offers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -343,7 +357,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_cards`
 --
 ALTER TABLE `user_cards`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Constraints for dumped tables

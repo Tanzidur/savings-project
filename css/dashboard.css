@@ -118,3 +118,81 @@ body {
   font-style: italic;
   margin-top: 0.1rem;
 }
+
+.transaction-row {
+  transition: background-color 0.15s ease;
+  border-radius: 8px;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.transaction-row:hover {
+  background-color: rgba(11, 110, 79, 0.06);
+}
+
+.row-arrow {
+  color: var(--color-primary);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-left: 0.5rem;
+}
+
+.transaction-row:hover .row-arrow {
+  opacity: 1;
+}
+
+.remove-card-btn {
+  margin-top: 0.5rem;
+  padding: 0.3rem 0.7rem;
+  background: #fee;
+  color: #c0392b;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.remove-card-btn:hover {
+  background: #fdd;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.settings-btn {
+  position: fixed;
+  top: 90px;
+  right: 1.5rem;
+  font-size: 1.5rem;
+  text-decoration: none;
+  color: #666;
+  background: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  z-index: 50;
+}
+.settings-btn:hover {
+  color: var(--color-primary);
+}
+
+.btn-primary {
+  padding: 0.65rem 1.5rem;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}

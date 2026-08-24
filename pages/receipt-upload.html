@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Receipt - Savings</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/toast.css">
+  <link rel="stylesheet" href="../css/receipt-upload.css">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo">Savings</div>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="benefits.html">Deals & Offers</a></li>
+      <li><a href="financial-education.html">Financial Education</a></li>
+      <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="page-container">
+    <a href="dashboard.html" class="back-link">&larr; Back to Dashboard</a>
+    <h1>Upload a Receipt</h1>
+    <p class="page-subtitle">We'll read it and fill in your transaction automatically.</p>
+
+    <div class="upload-box" id="upload-box">
+      <input type="file" id="receipt-input" accept="image/*" hidden>
+      <div id="upload-prompt">
+        <p>Click to choose a receipt photo</p>
+        <button class="btn-secondary" id="choose-file-btn">Choose Photo</button>
+      </div>
+      <img id="preview-image" class="hidden">
+    </div>
+
+    <button id="analyze-btn" class="btn-primary hidden" style="width:100%; margin-top:1rem;">Analyze Receipt</button>
+
+    <div id="result-form" class="hidden">
+      <h3 style="margin-top:2rem;">Review & Confirm</h3>
+
+      <div class="form-group">
+        <label for="result-category">Category</label>
+        <select id="result-category">
+          <option>Shopping</option>
+          <option>Dining</option>
+          <option>Groceries</option>
+          <option>Entertainment</option>
+          <option>Travel</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="result-amount">Amount (BDT)</label>
+        <input type="number" id="result-amount" min="0.01" step="0.01">
+      </div>
+
+      <div class="form-group">
+        <label for="result-description">Description</label>
+        <input type="text" id="result-description">
+      </div>
+
+      <button id="confirm-save-btn" class="btn-primary" style="width:100%;">Add to Transactions</button>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script>const NAV_BASE = '';</script>
+  <script src="../js/nav-auth.js"></script>
+  <script src="../js/receipt-upload.js"></script>
+</body>
+</html>

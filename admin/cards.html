@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Cards - Admin</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="banks.html">Banks</a></li>
+      <li><a href="cards.html" class="active">Cards</a></li>
+      <li><a href="offers.html">Offers</a></li>
+      <li><a href="merchants.html">Merchants</a></li>
+      <li><a href="articles.html">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Cards</h1>
+        <p>Every card must belong to a bank. Cards saved to a user's "My Cards" can't be deleted.</p>
+      </div>
+      <button class="btn-add" id="add-card-btn">+ Add Card</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Bank</th>
+            <th>Network</th>
+            <th>Type</th>
+            <th>Tier</th>
+            <th>Cashback</th>
+            <th>Reward Pts</th>
+            <th>EMI</th>
+            <th>Annual Fee</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="cards-tbody">
+          <tr class="empty-row"><td colspan="10">Loading cards...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add / Edit modal -->
+  <div class="modal-overlay hidden" id="card-modal">
+    <div class="modal">
+      <h2 id="card-modal-title">Add Card</h2>
+      <form id="card-form">
+        <input type="hidden" id="card-editing-id">
+
+        <div class="form-group">
+          <label for="card-id-input">Card ID</label>
+          <input type="text" id="card-id-input" placeholder="e.g. brac-visa-gold" required>
+          <div class="form-hint">Lowercase, no spaces. Can't be changed after creation.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="card-bank-select">Bank</label>
+          <select id="card-bank-select" required></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="card-network-input">Network</label>
+            <input type="text" id="card-network-input" placeholder="Visa / Mastercard / NPSB">
+          </div>
+          <div class="form-group">
+            <label for="card-type-select">Type</label>
+            <select id="card-type-select">
+              <option value="Debit">Debit</option>
+              <option value="Credit">Credit</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="card-tier-input">Tier</label>
+          <input type="text" id="card-tier-input" placeholder="Classic / Gold / Platinum / Signature">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="card-cashback-input">Cashback</label>
+            <input type="text" id="card-cashback-input" placeholder="e.g. 5%">
+          </div>
+          <div class="form-group">
+            <label for="card-annual-fee-input">Annual Fee</label>
+            <input type="text" id="card-annual-fee-input" placeholder="e.g. 1500 BDT">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="card-reward-points-input">Reward Points</label>
+          <input type="text" id="card-reward-points-input" placeholder="e.g. 2 pts per 50 BDT">
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="card-emi-checkbox">
+          <label for="card-emi-checkbox">Supports EMI</label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="card-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary-modal">Save Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/cards.js"></script>
+</body>
+</html>

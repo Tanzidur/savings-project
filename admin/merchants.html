@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Merchants - Admin</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="banks.html">Banks</a></li>
+      <li><a href="cards.html">Cards</a></li>
+      <li><a href="offers.html">Offers</a></li>
+      <li><a href="merchants.html" class="active">Merchants</a></li>
+      <li><a href="articles.html">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Merchants</h1>
+        <p>The merchant directory shown on the "Deals & Offers" page.</p>
+      </div>
+      <button class="btn-add" id="add-merchant-btn">+ Add Merchant</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Address</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="merchants-tbody">
+          <tr class="empty-row"><td colspan="5">Loading merchants...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add / Edit modal -->
+  <div class="modal-overlay hidden" id="merchant-modal">
+    <div class="modal">
+      <h2 id="merchant-modal-title">Add Merchant</h2>
+      <form id="merchant-form">
+        <input type="hidden" id="merchant-editing-id">
+
+        <div class="form-group">
+          <label for="merchant-name-input">Name</label>
+          <input type="text" id="merchant-name-input" placeholder="e.g. Daraz" required>
+        </div>
+
+        <div class="form-group">
+          <label for="merchant-category-input">Category</label>
+          <input type="text" id="merchant-category-input" placeholder="Shopping / Dining / Travel / Entertainment">
+        </div>
+
+        <div class="form-group">
+          <label for="merchant-description-input">Description</label>
+          <textarea id="merchant-description-input" placeholder="Short one-line description"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="merchant-address-input">Address</label>
+          <input type="text" id="merchant-address-input" placeholder="e.g. Gulshan, Dhaka or Online">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="merchant-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary-modal">Save Merchant</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/merchants.js"></script>
+</body>
+</html>

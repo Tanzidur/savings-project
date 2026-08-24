@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Banks - Admin</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="banks.html" class="active">Banks</a></li>
+      <li><a href="cards.html">Cards</a></li>
+      <li><a href="offers.html">Offers</a></li>
+      <li><a href="merchants.html">Merchants</a></li>
+      <li><a href="articles.html">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Banks</h1>
+        <p>Banks are referenced by Cards and Offers, so deleting one that's still in use will be blocked.</p>
+      </div>
+      <button class="btn-add" id="add-bank-btn">+ Add Bank</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Cards</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="banks-tbody">
+          <tr class="empty-row"><td colspan="4">Loading banks...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add / Edit modal -->
+  <div class="modal-overlay hidden" id="bank-modal">
+    <div class="modal">
+      <h2 id="bank-modal-title">Add Bank</h2>
+      <form id="bank-form">
+        <input type="hidden" id="bank-editing-id">
+
+        <div class="form-group">
+          <label for="bank-id-input">Bank ID</label>
+          <input type="text" id="bank-id-input" placeholder="e.g. bracbank" required>
+          <div class="form-hint">Lowercase, no spaces. Used internally to link cards to this bank. Can't be changed after creation.</div>
+        </div>
+
+        <div class="form-group">
+          <label for="bank-name-input">Bank Name</label>
+          <input type="text" id="bank-name-input" placeholder="e.g. BRAC Bank" required>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="bank-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary-modal">Save Bank</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/banks.js"></script>
+</body>
+</html>

@@ -13,21 +13,61 @@ A web app for discovering cashback, discounts, reward points, EMI offers, and me
 savings-project/
 ├── index.html
 ├── app.py               ← Flask backend, serves both /api/* routes and the frontend pages
+├── .env                  ← Gemini API keys (GEMINI_API_KEYS=key1,key2,...), NOT pushed to git
+├── .gitignore
 ├── venv/                ← local only, not pushed (see .gitignore)
 ├── database/
 │   └── savings_db.sql   ← DB export, import this to get all tables + data
 ├── css/
-│   ├── variables.css    ← shared colors/fonts, import this FIRST on every page
-│   ├── nav.css           ← shared navbar
-│   └── style.css        ← landing page styles
+│   ├── variables.css        ← shared colors/fonts, import this FIRST on every page
+│   ├── nav.css               ← shared navbar, spinner/loading-state styles
+│   ├── toast.css             ← toast notification styling
+│   ├── style.css             ← landing page styles
+│   ├── login.css
+│   ├── card-selection.css
+│   ├── benefits.css
+│   ├── financial-education.css
+│   ├── dashboard.css
+│   ├── offer-detail.css
+│   ├── payout.css
+│   ├── profile.css
+│   ├── receipt-upload.css
+│   └── transaction-detail.css
 ├── js/
-│   ├── nav-auth.js       ← shows Login or [Name]/Logout in navbar based on session
-│   └── script.js
-├── assets/images/
-├── pages/                ← every new page goes here
-├── data/                 ← old mock JSON, not used anymore
+│   ├── nav-auth.js           ← shows Login or [Name]/Logout in navbar based on session
+│   ├── toast.js               ← showToast() helper, used instead of alert()
+│   ├── script.js
+│   ├── login.js
+│   ├── card-selection.js
+│   ├── benefits.js
+│   ├── financial-education.js
+│   ├── dashboard.js
+│   ├── offer-detail.js
+│   ├── payout.js
+│   ├── profile.js
+│   ├── receipt-upload.js
+│   └── transaction-detail.js
+├── pages/                    ← every new page goes here
+│   ├── login.html
+│   ├── card-selection.html
+│   ├── benefits.html
+│   ├── financial-education.html
+│   ├── dashboard.html
+│   ├── offer-detail.html
+│   ├── payout.html
+│   ├── profile.html
+│   ├── receipt-upload.html
+│   ├── transaction-detail.html
+│   └── 404.html
+├── admin/                    ← Admin Panel — deliberately grouped by feature, not type (breaks the pages/css/js convention above, kept as-is since it was already built this way and remerging would cost more than it's worth at this point)
+│   ├── login.html, dashboard.html, banks.html, cards.html, offers.html, merchants.html, articles.html
+│   ├── css/admin.css
+│   └── js/ (admin-auth.js, admin-login.js, dashboard.js, banks.js, cards.js, offers.js, merchants.js, articles.js)
 └── README.md
 ```
+Note: there is no `data/` or `assets/` folder — those were part of an early plan that was never used once MySQL was set up.
+
+⚠️ **Anyone pulling this repo needs their own `.env` file** — it's git-ignored on purpose (API keys shouldn't be committed). Ask Tanzidur for keys, or register your own free Gemini API keys at aistudio.google.com/app/apikey and add them as `GEMINI_API_KEYS=key1,key2,key3` in a `.env` file at the project root. Receipt upload won't work without this, but the rest of the site is unaffected.
 
 ## How to Run This Project (first-time setup)
 
@@ -48,14 +88,14 @@ cd savings-project
 - Go to http://localhost/phpmyadmin
 - Click **New**, name it `savings_db`, click **Create**
 - Click the **Import** tab, choose `database/savings_db.sql`, click **Go**
-- ⚠️ If `savings_db.sql` hasn't been re-exported recently, it may be missing the `users`, `user_cards`, and `transactions` tables — check with Tanzidur if login/dashboard doesn't work after import.
+- ⚠️ If `savings_db.sql` hasn't been re-exported recently, check with Tanzidur if login/dashboard/payout don't work after import — it may be missing newer tables/columns (`users`, `user_cards`, `transactions`, or the `offer_title` column on `transactions`).
 
 **5. Set up Python packages**
 In VS Code's terminal, from the project folder:
 ```
 python -m venv venv
 venv\Scripts\activate
-pip install flask flask-mysqldb flask-cors
+pip install flask flask-mysqldb flask-cors werkzeug requests python-dotenv
 ```
 
 **6. Run the backend**
@@ -66,79 +106,88 @@ python app.py
 Should say `Running on http://127.0.0.1:5000`. Leave this terminal open.
 
 **7. Open the site**
-Go to **http://127.0.0.1:5000/** in your browser (not Live Server — Flask now serves the whole site, frontend included). Click through the navbar as normal. After editing any HTML/CSS/JS, refresh the browser manually — no auto-reload since we're not using Live Server anymore.
+Go to **http://127.0.0.1:5000/** in your browser (not Live Server — Flask serves the whole site, frontend included). After editing any HTML/CSS/JS, refresh the browser manually — no auto-reload.
 
 ## Conventions
-- Link `css/variables.css` and `css/nav.css` before your own page's stylesheet.
+- Link `css/variables.css` and `css/nav.css` before your own page's stylesheet. Add `css/toast.css` too if the page uses `showToast()`.
 - Use `var(--color-primary)` etc. instead of hardcoding hex colors.
 - One CSS file per page (e.g. `login.css`, `dashboard.css`).
 - Class naming: lowercase, hyphenated (`.feature-card`, not `.FeatureCard`).
 - New pages go in `pages/`, linked via the shared navbar in `css/nav.css`.
 - Fetch calls use relative paths (`/api/...`), not full URLs — Flask serves everything from one origin now.
+- Use `showToast(message, 'success' | 'error')` instead of `alert()` for user feedback.
 
 ## Pages & Ownership
 1. Landing Page ✅ — Tanzidur
 2. Login / Register ✅ — Tanzidur (real auth, hashed passwords, persistent sessions)
-3. Profile Management — on hold, not connected to real users yet
-4. Card Perks (was Card Selection) ✅ — connected to MySQL, filterable grid, "Save to My Account" working
+3. Profile Management ✅ — Tanzidur (edit name/email, change password, connected to real accounts)
+4. Card Perks (was Card Selection) ✅ — connected to MySQL, filterable grid, save/remove cards to account
 5. Deals & Offers ✅ — connected to MySQL, "Browse by Merchant" tab, links to Offer Detail page
 6. Offer Detail ✅ — full offer info, "Pay / Redeem" → Payout
-7. Payout ✅ — pick a saved card, static "Payment Successful" screen (no real transaction)
+7. Payout ✅ — pick a saved card, enter amount spent, writes a real transaction, static "Payment Successful" screen
 8. Financial Education ✅ — connected to MySQL
-9. Dashboard ✅ — logged-in user's name, spending pie chart, recent transactions, saved cards ("My Cards")
-10. Admin Panel ✅ — hardcoded admin login, CRUD for banks/cards/merchants (separate from user accounts)
+9. Dashboard ✅ — logged-in user's name, spending pie chart, recent transactions (clickable for details), saved cards ("My Cards", removable), link to Upload Receipt
+10. Receipt Upload ✅ — Tanzidur (new) — upload a photo, Gemini AI extracts category/amount/description, user confirms before saving
+11. Transaction Detail ✅ — Tanzidur (new) — click any transaction on Dashboard to see its full description
+12. Admin Panel ✅ — Afid & Tarif — full CRUD for banks, cards, offers (with expiry), merchants, and articles. Hardcoded admin login, separate session flag from customer accounts. Admin link in the footer hides itself when a customer is logged in.
 
 ## Update 1 (submitted)
 4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route. Landing page included as static context.
 
-## Update 2 (done, submission in progress)
-Faculty feedback after Update 1: add real login, and make offers actually actionable (not just browsable). Also restructured naming since Card Selection and Benefits/Offers were confusing people.
+## Update 2 (submitted)
+Faculty feedback after Update 1: add real login, and make offers actually actionable (not just browsable).
 
-### Renaming / restructuring — done
-- Card Selection → **Card Perks** (bank-side perks: cashback, points, EMI).
-- Benefits/Offers → **Deals & Offers** (merchant-side discounts/BOGOs).
-- Merchant Directory → merged into Deals & Offers as a "Browse by Merchant" tab. Old page/files removed.
+- **Renamed pages** — Card Selection → Card Perks, Benefits/Offers → Deals & Offers. Merchant Directory merged into Deals & Offers as a "Browse by Merchant" tab.
+- **Real user login** — `users` table, hashed passwords, real Flask sessions (permanent, 24hr). Navbar reflects login state site-wide (`nav-auth.js`).
+- **Dashboard** — spending pie chart, transaction list, saved cards ("My Cards"). Handles new users with no data gracefully.
+- **Save cards to account** — `user_cards` table, working from Card Perks.
+- **Card Perks rebuilt** as a filterable grid (Debit/Credit) to handle 20+ cards.
+- **Single-server architecture** — Flask now serves the frontend directly, not just `/api/*`. Removed CORS complexity, all fetches use relative paths. Tradeoff: no more Live Server auto-refresh.
+- **Offer → detail → pay → success flow** — click a deal → separate detail page → Pay/Redeem → payout page → pick saved card, enter amount → confirms and writes a real row to `transactions`, tagged with the offer's name so Dashboard can show "via [Offer Name]". Still no real payment gateway — amount is self-reported, not verified.
+- **Polish pass** — toast notifications replacing `alert()`, loading spinners, inline form validation (email, amount), custom 404 page wired into Flask's catch-all route. Mobile responsiveness skipped for this round.
 
-### 1. Real user login — done
-- `users` table, hashed passwords (werkzeug, not plain text).
-- `/api/register`, `/api/login`, `/api/logout`, `/api/session` — real Flask sessions, now permanent (24hr) so login survives browser restarts.
-- Navbar shows Login link when logged out, or [Name] + Logout when logged in, on every page (`js/nav-auth.js`).
-- Dashboard page — welcome message, spending pie chart, transaction list, and a "My Cards" section showing saved cards. Pulls from a `transactions` table. Handles new users with zero transactions gracefully instead of breaking.
-- `user_cards` table + "Save This Card to My Account" button on Card Perks — working.
-- Card Perks rebuilt as a filterable grid (All/Debit/Credit) instead of flat buttons, to handle 20+ cards cleanly.
-- Admin CRUD is separate from user accounts, already built, staying as-is.
+## Update 3 (submitted)
 
-### Architecture change: single server
-- Flask now serves the frontend pages directly (not just `/api/*`), so the whole site runs from one origin (`http://127.0.0.1:5000`) instead of splitting between Live Server (5500) and Flask (5000).
-- Removed the need for a CORS origin whitelist — same-origin requests don't need it.
-- All fetch calls switched from full URLs to relative paths (`/api/...`).
-- Tradeoff: no more Live Server auto-refresh — manual browser refresh needed after edits.
+Faculty feedback: add receipt OCR for automatic transaction logging, build out the full Admin Panel, and round out the product with profile/card editing and real-time offer expiry.
 
-### 2. Offer → detail → pay → success flow — done
-- Click a deal card on Deals & Offers → goes to `offer-detail.html?offerId=X`, a separate page (not a modal — a modal version was tried first but caused a stuck-open/broken-close-button bug that was hard to debug, so switched to a normal page load instead).
-- Deal cards themselves were trimmed down to just category/title/merchant/discount + "View Details →", since the full description and validity date were redundant on the card once the detail page existed.
-- Detail page → "Pay / Redeem This Offer" → `payout.html?offerId=X` → pick from saved cards (or a message prompting to add one first), enter how much was spent → "Confirm Payment" → static "Payment Successful" screen.
-- Redemption now actually writes a real row to `transactions` (category + amount the user entered), tagged with `offer_title` so Dashboard can show "via [Offer Name]" under that entry — distinguishes real redeemed purchases from other spending without needing a separate list. Decided against a fully separate "redeemed offers" list since a redemption is still real spending and belongs in the spending chart.
-- Still no real payment gateway — the amount is self-reported by the user, not verified by any processor. Fine for a prototype, worth stating plainly if asked.
+### 1. Receipt OCR → auto-add transaction (Tanzidur)
+- New page `pages/receipt-upload.html`, linked from Dashboard. User uploads a photo, it's sent to `/api/ocr-receipt`.
+- Uses Google Gemini (`gemini-3.5-flash-lite` — free tier, vision-capable). Model name needed updating once already when Google deprecated `gemini-2.5-flash-lite` mid-project — worth expecting this to happen again occasionally, it's normal for AI APIs.
+- Multi-key rotation: `.env` holds `GEMINI_API_KEYS=key1,key2,key3,...` (comma-separated, any number of keys). Backend tries each key in order on a 429/failure before giving up — solves the free-tier rate-limit problem directly.
+- Extracted category (from a fixed list matching the app's existing categories), amount, and description are shown in an editable form — user confirms before anything is saved, rather than auto-inserting blindly (OCR can misread things).
+- Confirmed save goes through a new generic `/api/add-transaction` route (separate from `/api/redeem`, which is specifically for offer redemptions).
+- `transactions` table gained a `description` column. Redeemed offers now also populate `description` (using the offer's title) so both OCR'd and redeemed transactions look consistent when viewed.
 
-### 3. Small polish targets — done (except mobile)
-- Toast notifications (`js/toast.js`, `css/toast.css`) replacing `alert()` — used on Login/Register and Payout.
-- Loading spinners (`.spinner`/`.loading-state` in `css/nav.css`) replacing plain "Loading..." text across Card Perks, Deals & Offers, Financial Education, Dashboard, Offer Detail, Payout.
-- Inline form validation (red border + toast) on Login/Register email and Payout amount.
-- Custom 404 page (`pages/404.html`) — wired into Flask's catch-all route directly (not `@app.errorhandler`, since the catch-all route already handles unmatched paths itself and would shadow the error handler).
-- Mobile responsiveness pass — skipped for now, not a priority for this round.
+### 2. Admin Panel (Afid & Tarif)
+- Login page (hardcoded credentials, no separate `admins` table), protected panel with a sidebar layout, all under `/api/admin/...` routes guarded by an `@admin_required` decorator (separate session flag from customer login — the two don't conflict).
+- **Tarif**: Banks, Cards, Merchants, and Articles/Financial Education — full add/edit/delete for each, with foreign-key-aware delete protection (e.g. can't delete a bank still referenced by cards or offers).
+- **Afid**: Offers CRUD (including validity date) + real-time expiry — an offer's `is_expired` status is computed server-side (`valid_until < CURDATE()`) so it's consistent regardless of a visitor's local clock. Expired offers show grayed out with a red "Expired" badge on Deals & Offers (sorted to the bottom, not hidden), and their detail page shows a disabled "Offer Expired" button instead of the Pay/Redeem link.
+- Admin footer link on the landing page now hides itself when a customer session is active (UX only — the actual admin password check is what gates real access, not the link's visibility).
+- Added more sample offers with a mix of past and future `valid_until` dates so expiry is visibly demonstrable, not just theoretical.
+
+### 3. Rounding out the product (Tanzidur)
+- Profile Management built from scratch (`/api/profile` GET/PUT, `/api/profile/password` PUT) — edit name/email, change password (requires current password to confirm). A settings icon (fixed top-right on Dashboard) links to Profile; clicking your name in the navbar goes to Dashboard.
+- Saved cards can now be removed, not just added — `DELETE /api/my-cards/<card_id>` on Dashboard's "My Cards" section.
+- Dashboard transactions are now clickable — go to a Transaction Detail page showing the full description (from OCR or a redeemed offer's title), with a visible hover state on each row.
+
+### Merge notes
+Afid and Tarif built their admin work independently and somewhat differently structured — merging required standardizing on one shared `admin_required` decorator/session pattern (Tarif's) and folding Afid's offers-specific routes/UI into that same structure rather than keeping two separate admin systems. Worth remembering for future team splits: agree on shared infrastructure (auth, session pattern, file layout) *before* splitting off to build independently, not after — would have saved a merge pass.
+
+### Work division (all complete)
+- **Tanzidur** — Receipt OCR (upload, AI API integration, multi-key fallback logic), Profile Management (build from scratch), editing/removing saved cards.
+- **Afid** — Admin Panel: Offers CRUD (including validity date), real-time offer expiry logic (both the display-side graying-out and the admin-side date input).
+- **Tarif** — Admin Panel: Banks CRUD, Cards CRUD, Merchants CRUD, Articles/Financial Education CRUD, admin login/dashboard shell and sidebar UI (which the rest of the admin panel was built on top of).
 
 ## Progress Log
-- 14/07 — Project structure set up. Landing page built and styled.
-- 14/07 — Added `variables.css`, divided remaining pages among the team.
-- 15/07 — Built Login/Register (toggle UI) and Profile pages, in-memory only.
-- 16/07 — Installed MySQL (XAMPP) + Flask. Connected Card Selection to real DB.
-- 16/07 — Connected Benefits, Merchant Directory, and Financial Education pages to MySQL.
-- 16/07 — Scoped Update 1 to the 4 DB-connected pages + landing.
-- 16/07 — Fixed venv being tracked in git.
-- 19/07 — Added shared navbar to all pages. Fixed font mismatch, navbar spacing, and login page layout bug. Planned Update 2 (real auth + personalization).
-- 19/07 — Exported database to `database/savings_db.sql` so teammates can set up MySQL locally. Added step-by-step setup guide to README.
-- 19/07 — Faculty feedback after Update 1: add real login + make offers actionable. Planned Update 2: real auth, "Card Perks" vs "Deals & Offers" rename, folding Merchant Directory into Deals & Offers, offer→pay→success flow, small UX polish. Admin CRUD pushed to Update 3.
-- 19/07 — Built real login/register (users table, hashed passwords, Flask sessions). Fixed cookie bug caused by localhost vs 127.0.0.1 mismatch. Built Dashboard page with spending pie chart and transaction list. Added `user_cards` table + "Save This Card to My Account" on Card Perks page. Added shared navbar login/logout state (`nav-auth.js`). Merged Merchant Directory into Deals & Offers as a "Browse by Merchant" tab; deleted old merchant-directory files.
-- 20/07 — Teammate added static file serving to Flask and tightened CORS — switched the whole project to run through Flask as a single server instead of splitting frontend (Live Server) and backend (Flask). Updated all fetch calls to relative paths. Fixed session persistence so login survives browser restarts (permanent sessions, 24hr). Reverted an accidental security downgrade (HttpOnly cookie flag). Cleaned up debug logging left in app.py, login.js, dashboard.js. Kept useful defensive checks added for users with no transactions yet.
-- 09/08 — Rebuilt Card Perks as a filterable grid (All/Debit/Credit) to handle 20+ cards. Added "My Cards" section to Dashboard. Tried a modal for offer details first — caused a stuck-open/unresponsive-close-button bug, switched to a proper separate page instead. Built Offer Detail page and Payout page (pick saved card → static "Payment Successful" screen). Trimmed offer cards on Deals & Offers down to essentials since full info is now on the detail page.
+- 14/07 — Project structure set up, landing page built, `variables.css` added, pages divided among the team.
+- 15/07 — Login/Register page built (UI only, in-memory). Profile Management planned but not started at this point.
+- 16/07 — MySQL + Flask set up. Card Selection, Benefits, Merchant Directory, Financial Education connected to real DB. Update 1 scoped and submitted.
+- 19/07 — Shared navbar added site-wide, layout/font bugs fixed. Update 2 planned with faculty feedback: real auth, page renames, offer→pay flow.
+- 19/07 — Real login/register built (hashed passwords, sessions). Dashboard built with spending chart. Cards can be saved to account. Merchant Directory merged into Deals & Offers.
+- 20/07 — Switched to single-server architecture (Flask serves frontend + API). Session persistence fixed. Cleaned up debug code from a teammate's CORS fix.
+- 09/08 — Card Perks rebuilt as a filterable grid. Offer Detail and Payout pages built (redeem flow, static success screen). "My Cards" added to Dashboard.
+- 09/08 — Redemptions now write real transactions, tagged with the offer name. Added toast notifications, loading spinners, form validation, and a custom 404 page. Update 2 submitted.
+- 09/08 — Planned Update 3 with faculty feedback: receipt OCR, full Admin Panel, profile/card editing, real-time offer expiry. Work divided among the team.
+- 22/08 — (Tanzidur) Receipt OCR built end-to-end: upload page, Gemini API integration with multi-key rotation, editable confirm step, saves to a real transaction. Profile Management built from scratch. Saved cards can now be removed. Transactions are clickable, showing full details on their own page.
+- 22/08 — Moved Profile access from navbar name-click to a dedicated settings icon (fixed-position, top-right of Dashboard) — clicking your name goes back to Dashboard. Fixed Dashboard's missing `.btn-primary` style (Upload Receipt button was rendering as a plain unstyled link). Tanzidur's full share of Update 3 is complete — only Admin Panel (Afid/Tarif) remains for this update.
+- 23/08 — Tarif and Afid delivered independently-built Admin Panels; merged into one, standardizing on Tarif's `admin_required`/session pattern and sidebar layout. Full CRUD live for banks, cards, merchants, articles, and offers. Real-time offer expiry built and demonstrable (added sample offers with past/future dates). Admin footer link now hides for logged-in customers. Update 3 submitted — all three faculty-requested items complete.

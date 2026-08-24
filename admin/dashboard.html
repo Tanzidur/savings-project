@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Savings</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="banks.html">Banks</a></li>
+      <li><a href="cards.html">Cards</a></li>
+      <li><a href="offers.html">Offers</a></li>
+      <li><a href="merchants.html">Merchants</a></li>
+      <li><a href="articles.html">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Dashboard</h1>
+        <p>Overview of everything powering the Savings app.</p>
+      </div>
+    </div>
+
+    <div class="stat-cards" id="stat-cards">
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Banks</div></div>
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Cards</div></div>
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Merchants</div></div>
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Articles</div></div>
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Offers</div></div>
+      <div class="stat-card"><div class="stat-value">&mdash;</div><div class="stat-label">Users</div></div>
+    </div>
+
+    <div class="admin-quick-links">
+      <a href="banks.html" class="quick-link-card">
+        <h3>Banks</h3>
+        <p>Add, rename, or remove the banks offered in the app.</p>
+      </a>
+      <a href="cards.html" class="quick-link-card">
+        <h3>Cards</h3>
+        <p>Manage card perks: cashback, EMI, tier, reward points, and fees.</p>
+      </a>
+      <a href="merchants.html" class="quick-link-card">
+        <h3>Merchants</h3>
+        <p>Manage the merchant directory shown in Deals & Offers.</p>
+      </a>
+      <a href="articles.html" class="quick-link-card">
+        <h3>Financial Education</h3>
+        <p>Write and edit the articles shown on the Financial Education page.</p>
+      </a>
+    </div>
+  </main>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

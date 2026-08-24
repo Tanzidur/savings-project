@@ -14,17 +14,20 @@ fetch('/api/offers')
     }
 
     box.innerHTML = `
-      <span class="detail-category">${offer.category}</span>
-      <h1 class="detail-title">${offer.title}</h1>
-      <p class="detail-merchant">${offer.merchant}</p>
-      <p class="detail-discount">${offer.discount}</p>
-      <p class="detail-desc">${offer.description}</p>
-      <div class="detail-meta">
-        <div><span class="detail-meta-label">Bank</span>${offer.bankName}</div>
-        <div><span class="detail-meta-label">Valid Until</span>${offer.validUntil}</div>
-      </div>
-      <a href="payout.html?offerId=${offer.id}" class="btn-primary">Pay / Redeem This Offer</a>
-    `;
+    <span class="detail-category">${offer.category}</span>
+    ${offer.isExpired ? '<span class="expired-badge">Expired</span>' : ''}
+    <h1 class="detail-title">${offer.title}</h1>
+    <p class="detail-merchant">${offer.merchant}</p>
+    <p class="detail-discount">${offer.discount}</p>
+    <p class="detail-desc">${offer.description}</p>
+    <div class="detail-meta">
+      <div><span class="detail-meta-label">Bank</span>${offer.bankName}</div>
+      <div><span class="detail-meta-label">Valid Until</span>${offer.validUntil}</div>
+    </div>
+    ${offer.isExpired
+      ? '<button class="btn-primary" disabled style="opacity:0.5; cursor:not-allowed;">Offer Expired</button>'
+      : `<a href="payout.html?offerId=${offer.id}" class="btn-primary">Pay / Redeem This Offer</a>`}
+  `;
   })
   .catch(err => {
     box.innerHTML = '<p class="loading-msg">Could not load offer. Is Flask running?</p>';

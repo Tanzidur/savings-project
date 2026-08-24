@@ -1,0 +1,89 @@
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background, var(--color-bg));
+  margin: 0;
+}
+
+.page-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.back-link {
+  display: inline-block;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.page-container h1 {
+  color: var(--color-primary);
+  margin-bottom: 0.3rem;
+}
+
+.page-subtitle {
+  color: #777;
+  margin-bottom: 1.5rem;
+}
+
+.upload-box {
+  background: white;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
+.upload-box img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+.btn-secondary {
+  padding: 0.6rem 1.2rem;
+  background: white;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.btn-primary {
+  padding: 0.85rem;
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-group input, .form-group select {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.hidden {
+  display: none;
+}

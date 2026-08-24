@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Articles - Admin</title>
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="../css/toast.css">
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="admin-logo">Savings<span>ADMIN PANEL</span></div>
+    <ul class="admin-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="banks.html">Banks</a></li>
+      <li><a href="cards.html">Cards</a></li>
+      <li><a href="offers.html">Offers</a></li>
+      <li><a href="merchants.html">Merchants</a></li>
+      <li><a href="articles.html" class="active">Financial Education</a></li>
+    </ul>
+    <div class="admin-sidebar-footer">
+      <span class="admin-user-email" id="admin-user-email">&nbsp;</span>
+      <button id="admin-logout-btn">Log Out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1>Financial Education</h1>
+        <p>Articles shown on the Financial Education page.</p>
+      </div>
+      <button class="btn-add" id="add-article-btn">+ Add Article</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Summary</th>
+            <th>Read Time</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="articles-tbody">
+          <tr class="empty-row"><td colspan="5">Loading articles...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Add / Edit modal -->
+  <div class="modal-overlay hidden" id="article-modal">
+    <div class="modal">
+      <h2 id="article-modal-title">Add Article</h2>
+      <form id="article-form">
+        <input type="hidden" id="article-editing-id">
+
+        <div class="form-group">
+          <label for="article-title-input">Title</label>
+          <input type="text" id="article-title-input" placeholder="e.g. Understanding Credit Card Interest" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="article-category-input">Category</label>
+            <input type="text" id="article-category-input" placeholder="e.g. Credit Basics">
+          </div>
+          <div class="form-group">
+            <label for="article-read-time-input">Read Time</label>
+            <input type="text" id="article-read-time-input" placeholder="e.g. 4 min">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="article-summary-input">Summary</label>
+          <textarea id="article-summary-input" placeholder="One-sentence summary shown on the article card" style="min-height:60px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="article-content-input">Content</label>
+          <textarea id="article-content-input" placeholder="Full article body" style="min-height:150px;"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" id="article-cancel-btn">Cancel</button>
+          <button type="submit" class="btn-primary-modal">Save Article</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/toast.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/articles.js"></script>
+</body>
+</html>

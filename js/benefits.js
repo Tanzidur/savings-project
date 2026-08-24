@@ -92,16 +92,19 @@ function renderOffers(offers) {
     return;
   }
 
-  offers.forEach(offer => {
+  const sorted = [...offers].sort((a, b) => a.isExpired - b.isExpired);
+
+  sorted.forEach(offer => {
     const card = document.createElement('div');
-    card.className = 'offer-card';
+    card.className = 'offer-card' + (offer.isExpired ? ' offer-expired' : '');
     card.style.cursor = 'pointer';
     card.innerHTML = `
-    <span class="offer-category">${offer.category}</span>
-    <h3>${offer.title}</h3>
-    <p class="offer-merchant">${offer.merchant}</p>
-    <p class="offer-discount">${offer.discount}</p>
-    <span class="view-details-link">View Details &rarr;</span>
+      <span class="offer-category">${offer.category}</span>
+      ${offer.isExpired ? '<span class="expired-badge">Expired</span>' : ''}
+      <h3>${offer.title}</h3>
+      <p class="offer-merchant">${offer.merchant}</p>
+      <p class="offer-discount">${offer.discount}</p>
+      <span class="view-details-link">View Details &rarr;</span>
     `;
     card.addEventListener('click', () => {
       window.location.href = `offer-detail.html?offerId=${offer.id}`;

@@ -3,11 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Offer Details - Savings</title>
+  <title>Transaction Details - Savings</title>
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/nav.css">
-  <link rel="stylesheet" href="../css/offer-detail.css">
+  <link rel="stylesheet" href="../css/transaction-detail.css">
 </head>
+
 <body>
 
   <nav class="navbar">
@@ -22,15 +23,12 @@
   </nav>
 
   <div class="page-container">
-    <a href="benefits.html" class="back-link">&larr; Back to Deals & Offers</a>
+    <a href="dashboard.html" class="back-link">&larr; Back to Dashboard</a>
 
-    <div id="offer-detail-box">
-      <div class="loading-state"><div class="spinner"></div> Loading offer...</div>
+    <div id="detail-box">
+      <p class="loading-msg">Loading...</p>
     </div>
   </div>
-
-  <script>const NAV_BASE = '';</script>
-  <script src="../js/nav-auth.js"></script>
-  <script src="../js/offer-detail.js"></script>
+  <script src="../js/transaction-detail.js"></script>
 </body>
 </html>

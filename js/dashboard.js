@@ -49,14 +49,33 @@ function renderMyCards(cards) {
     tile.innerHTML = `
       <div class="card-tile-network">${card.network} ${card.tier}</div>
       <div class="card-tile-bank">${card.bankName}</div>
+      <button class="remove-card-btn" data-card-id="${card.id}">Remove</button>
     `;
     grid.appendChild(tile);
   });
 
   container.innerHTML = '';
   container.appendChild(grid);
-}
 
+  document.querySelectorAll('.remove-card-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cardId = btn.dataset.cardId;
+
+      fetch(`/api/my-cards/${cardId}`, { method: 'DELETE', credentials: 'include' })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            showToast('Card removed', 'success');
+            fetch('/api/my-cards', { credentials: 'include' })
+              .then(res => res.json())
+              .then(cards => renderMyCards(cards));
+          } else {
+            showToast(data.error || 'Could not remove card', 'error');
+          }
+        });
+    });
+  });
+}
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
@@ -78,14 +97,19 @@ function renderTransactionsList(transactions) {
   transactions.slice().reverse().forEach(t => {
     const row = document.createElement('div');
     row.className = 'transaction-row';
+    row.style.cursor = 'pointer';
     row.innerHTML = `
-      <div>
-        <span class="transaction-category">${t.category}</span>
-        ${t.offerTitle ? `<div class="transaction-offer-tag">via ${t.offerTitle}</div>` : ''}
-      </div>
-      <span>${t.amount.toFixed(2)} BDT</span>
-      <span class="transaction-date">${t.date}</span>
+    <div>
+      <span class="transaction-category">${t.category}</span>
+      ${t.offerTitle ? `<div class="transaction-offer-tag">via ${t.offerTitle}</div>` : ''}
+    </div>
+    <span>${t.amount.toFixed(2)} BDT</span>
+    <span class="transaction-date">${t.date}</span>
+    <span class="row-arrow">&rarr;</span>
     `;
+    row.addEventListener('click', () => {
+      window.location.href = `transaction-detail.html?id=${t.id}`;
+    });
     list.appendChild(row);
   });
 }
