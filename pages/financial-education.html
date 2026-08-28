@@ -22,12 +22,57 @@
   </nav>
 
   <div class="page-container">
-    <h1>Financial Education</h1>
-    <p class="page-subtitle">Tips and guides to help you make smarter financial decisions.</p>
+    <header class="edu-hero">
+      <p class="edu-kicker">Learn before you swipe</p>
+      <h1>Financial Education</h1>
+      <p class="page-subtitle">Short, practical guides for Bangladeshi cards: cashback math, EMI, offer fine print, and habits that actually keep money in your pocket.</p>
+    </header>
 
+    <div class="tip-grid">
+      <article class="tip-card">
+        <h3>Pay the statement in full</h3>
+        <p>Cashback is worthless if revolving interest eats it. Treat credit like delayed debit.</p>
+      </article>
+      <article class="tip-card">
+        <h3>Match merchant and category</h3>
+        <p>Apex is shopping, not dining. Best Card Picker will refuse a combo that cannot happen in real life.</p>
+      </article>
+      <article class="tip-card">
+        <h3>Watch dates, not just %</h3>
+        <p>Star a deal that ends soon. Dashboard surfaces watched offers in the next 14 days.</p>
+      </article>
+    </div>
+
+    <section class="checklist-card">
+      <h2>Before you redeem</h2>
+      <ul>
+        <li>Is the offer still live (not expired)?</li>
+        <li>Does the merchant match where you will actually pay?</li>
+        <li>Is the discount a percent, BOGO, or a free item?</li>
+        <li>Can you pay this bill without carrying a balance?</li>
+        <li>Did you save the right bank’s card on Card Perks?</li>
+      </ul>
+    </section>
+
+    <div class="edu-toolbar">
+      <h2>Guides</h2>
+      <div class="filter-bar" id="article-filters"></div>
+    </div>
     <div class="article-list" id="article-list">
       <div class="loading-state"><div class="spinner"></div> Loading articles...</div>
     </div>
+
+    <section class="glossary">
+      <h2>Quick glossary</h2>
+      <dl>
+        <div><dt>Cashback</dt><dd>A percent of spend returned as statement credit or wallet cash. Only counts on eligible categories.</dd></div>
+        <div><dt>APR</dt><dd>Yearly interest if you do not pay the credit-card statement in full.</dd></div>
+        <div><dt>EMI</dt><dd>Splitting a purchase into monthly installments. 0% EMI is useful; interest-bearing EMI is a loan.</dd></div>
+        <div><dt>BOGO</dt><dd>Buy one get one. For ranking we treat it as about 50% of that spend — a demo estimate, not a bank rule.</dd></div>
+        <div><dt>Annual fee</dt><dd>What the bank charges each year to keep the card. Subtract this when you compare “high cashback” cards.</dd></div>
+        <div><dt>Reward points</dt><dd>Points per BDT spent. Convert to cash value before you chase them; they often expire.</dd></div>
+      </dl>
+    </section>
   </div>
 
   <script src="../js/financial-education.js"></script>

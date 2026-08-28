@@ -77,6 +77,15 @@ body {
   margin-bottom: 1rem;
 }
 
+.picker-empty {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  color: #555;
+  line-height: 1.5;
+}
+
 .rank-card {
   background: white;
   border-radius: 12px;

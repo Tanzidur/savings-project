@@ -30,13 +30,15 @@
 
     <div class="view-tabs">
       <button class="view-tab-btn active" data-view="offers">All Deals</button>
+      <button class="view-tab-btn" data-view="watchlist">Watchlist</button>
       <button class="view-tab-btn" data-view="merchants">Browse by Merchant</button>
     </div>
 
     <div id="offers-view">
       <div class="deals-toolbar">
         <input type="text" id="offer-search" class="search-input" placeholder="Search by title, merchant, or bank...">
-        <label class="toggle-row"><input type="checkbox" id="for-you-toggle"> For You</label>
+        <label class="toggle-row" id="for-you-row"><input type="checkbox" id="for-you-toggle"> For You</label>
+        <label class="toggle-row"><input type="checkbox" id="watchlist-toggle"> Watchlist</label>
         <label class="toggle-row"><input type="checkbox" id="show-expired-toggle"> Show expired</label>
       </div>
       <div class="filter-bar" id="filter-bar">

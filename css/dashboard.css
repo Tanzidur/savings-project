@@ -212,24 +212,42 @@ body {
 }
 
 .settings-btn {
-  position: fixed;
-  top: 90px;
-  right: 1.5rem;
-  font-size: 1.5rem;
-  text-decoration: none;
-  color: #666;
-  background: white;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  z-index: 50;
+  gap: 0.45rem;
+  padding: 0.85rem 1.5rem;
+  background: linear-gradient(160deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(11, 110, 79, 0.28);
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .settings-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(11, 110, 79, 0.35);
+}
+
+.verify-status {
+  margin: 0.35rem 0 0 0;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.verify-status a {
   color: var(--color-primary);
+  font-weight: 600;
+}
+
+.verify-status.is-verified {
+  color: var(--color-primary);
+  font-weight: 600;
 }
 
 .btn-primary {

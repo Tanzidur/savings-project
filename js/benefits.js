@@ -4,6 +4,7 @@ let watchedIds = new Set();
 let savedBankIds = new Set();
 let currentCategory = 'All';
 let loggedIn = false;
+let watchlistOnly = false;
 
 const offersView = document.getElementById('offers-view');
 const merchantsView = document.getElementById('merchants-view');
@@ -13,6 +14,7 @@ const merchantGrid = document.getElementById('merchant-grid');
 const merchantSearch = document.getElementById('merchant-search');
 const offerSearch = document.getElementById('offer-search');
 const forYouToggle = document.getElementById('for-you-toggle');
+const watchlistToggle = document.getElementById('watchlist-toggle');
 const showExpiredToggle = document.getElementById('show-expired-toggle');
 
 Promise.all([
@@ -44,11 +46,16 @@ fetch('/api/merchants')
     console.error('Error loading merchants:', error);
   });
 
-function showOffersView(resetFilter) {
+function showOffersView(resetFilter, asWatchlist) {
   document.querySelectorAll('.view-tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('[data-view="offers"]').classList.add('active');
+  const tab = asWatchlist
+    ? document.querySelector('[data-view="watchlist"]')
+    : document.querySelector('[data-view="offers"]');
+  if (tab) tab.classList.add('active');
   offersView.classList.remove('hidden');
   merchantsView.classList.add('hidden');
+  watchlistOnly = !!asWatchlist;
+  watchlistToggle.checked = watchlistOnly;
 
   if (resetFilter) {
     currentCategory = 'All';
@@ -56,8 +63,8 @@ function showOffersView(resetFilter) {
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     const allBtn = document.querySelector('.filter-btn[data-category="All"]');
     if (allBtn) allBtn.classList.add('active');
-    applyOfferFilters();
   }
+  applyOfferFilters();
 }
 
 function showMerchantsView() {
@@ -68,7 +75,11 @@ function showMerchantsView() {
 }
 
 document.querySelector('[data-view="offers"]').addEventListener('click', () => {
-  showOffersView(true);
+  showOffersView(true, false);
+});
+
+document.querySelector('[data-view="watchlist"]').addEventListener('click', () => {
+  showOffersView(true, true);
 });
 
 document.querySelector('[data-view="merchants"]').addEventListener('click', () => {
@@ -98,11 +109,25 @@ function applyOfferFilters(merchantName) {
   const query = (offerSearch.value || '').toLowerCase().trim();
   const forYou = forYouToggle.checked;
   const showExpired = showExpiredToggle.checked;
+  const watching = watchlistToggle.checked;
+  watchlistOnly = watching;
+
+  if (watching) {
+    document.querySelectorAll('.view-tab-btn').forEach(b => b.classList.remove('active'));
+    const tab = document.querySelector('[data-view="watchlist"]');
+    if (tab) tab.classList.add('active');
+  }
+
+  if (watching && !loggedIn) {
+    offersGrid.innerHTML = '<p class="loading-msg">Log in to see the offers you are watching.</p>';
+    return;
+  }
 
   let filtered = offersData.filter(o => {
     if (currentCategory !== 'All' && o.category !== currentCategory) return false;
     if (merchantName && o.merchant !== merchantName) return false;
     if (!showExpired && o.isExpired) return false;
+    if (watching && !watchedIds.has(o.id)) return false;
     if (forYou) {
       if (!loggedIn) return false;
       if (savedBankIds.size === 0) return false;
@@ -115,6 +140,10 @@ function applyOfferFilters(merchantName) {
     return true;
   });
 
+  if (watching && watchedIds.size === 0) {
+    offersGrid.innerHTML = '<p class="loading-msg">You are not watching any offers yet. Star a deal to add it here.</p>';
+    return;
+  }
   if (forYou && loggedIn && savedBankIds.size === 0) {
     offersGrid.innerHTML = '<p class="loading-msg">Save a card on Card Perks to see personalized deals.</p>';
     return;
@@ -123,12 +152,24 @@ function applyOfferFilters(merchantName) {
     offersGrid.innerHTML = '<p class="loading-msg">Log in and save a card to use For You.</p>';
     return;
   }
+  if (watching && filtered.length === 0) {
+    offersGrid.innerHTML = '<p class="loading-msg">No watched offers match these filters.</p>';
+    return;
+  }
 
   renderOffers(filtered);
 }
 
 offerSearch.addEventListener('input', () => applyOfferFilters());
 forYouToggle.addEventListener('change', () => applyOfferFilters());
+watchlistToggle.addEventListener('change', () => {
+  watchlistOnly = watchlistToggle.checked;
+  if (!watchlistOnly) {
+    document.querySelectorAll('.view-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-view="offers"]').classList.add('active');
+  }
+  applyOfferFilters();
+});
 showExpiredToggle.addEventListener('change', () => applyOfferFilters());
 
 function renderOffers(offers) {
@@ -199,8 +240,9 @@ function toggleWatch(offerId, btn) {
       watchedIds.add(offerId);
       btn.classList.add('watched');
       btn.textContent = '★';
-      showToast('Watching this offer', 'success');
+      showToast('Watching this offer — open the Watchlist tab to see all of them', 'success');
     }
+    if (watchlistToggle.checked) applyOfferFilters();
   }).catch(() => showToast('Could not update watchlist', 'error'));
 }
 

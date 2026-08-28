@@ -13,6 +13,20 @@ fetch(`${API}/dashboard`, { credentials: 'include' })
 
     document.getElementById('welcome-heading').textContent = `Welcome back, ${data.name}!`;
 
+    fetch('/api/profile', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(profile => {
+        const el = document.getElementById('verify-status');
+        if (!el || !profile) return;
+        if (profile.accountVerified) {
+          el.textContent = 'Account verified';
+          el.classList.add('is-verified');
+        } else {
+          el.innerHTML = 'Account not verified — <a href="profile.html">complete Settings</a>';
+          el.classList.remove('is-verified');
+        }
+      });
+
     const saved = Number(data.monthlySavings || 0).toFixed(2);
     document.getElementById('savings-banner').innerHTML =
       `This month you saved <strong>${saved} BDT</strong> from redeemed offers`;

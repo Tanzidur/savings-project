@@ -3,12 +3,18 @@ const categorySelect = document.getElementById('category-select');
 const amountInput = document.getElementById('spend-amount');
 const resultsEl = document.getElementById('picker-results');
 const hintEl = document.getElementById('picker-hint');
+const FALLBACK_CATEGORIES = ['Shopping', 'Dining', 'Groceries', 'Entertainment', 'Travel', 'Other'];
 
 Promise.all([
-  fetch('/api/offers').then(r => r.json())
-]).then(([offers]) => {
-  const active = (offers || []).filter(o => !o.isExpired);
-  const names = [...new Set(active.map(o => o.merchant).filter(Boolean))].sort();
+  fetch('/api/offers').then(r => r.json()),
+  fetch('/api/merchants').then(r => r.ok ? r.json() : [])
+]).then(([offers, merchants]) => {
+  const offerList = Array.isArray(offers) ? offers : [];
+  const merchantList = Array.isArray(merchants) ? merchants : [];
+  const names = [...new Set([
+    ...merchantList.map(m => m.name).filter(Boolean),
+    ...offerList.map(o => o.merchant).filter(Boolean)
+  ])].sort();
   names.forEach(name => {
     const opt = document.createElement('option');
     opt.value = name;
@@ -16,7 +22,11 @@ Promise.all([
     merchantSelect.appendChild(opt);
   });
 
-  const cats = [...new Set(active.map(o => o.category).filter(Boolean))].sort();
+  const cats = [...new Set([
+    ...FALLBACK_CATEGORIES,
+    ...merchantList.map(m => m.category).filter(Boolean),
+    ...offerList.map(o => o.category).filter(Boolean)
+  ])].sort();
   cats.forEach(cat => {
     const opt = document.createElement('option');
     opt.value = cat;
@@ -65,6 +75,12 @@ document.getElementById('picker-form').addEventListener('submit', (e) => {
 
 function renderResults(data) {
   const cards = data.cards || [];
+  if (data.emptyReason) {
+    hintEl.textContent = '';
+    resultsEl.innerHTML = `<p class="picker-empty">${data.emptyReason}</p>`;
+    return;
+  }
+
   if (data.usedWallet) {
     hintEl.textContent = 'Ranking your saved cards. Save more cards on Card Perks to widen the comparison.';
   } else {
@@ -72,7 +88,7 @@ function renderResults(data) {
   }
 
   if (cards.length === 0) {
-    resultsEl.innerHTML = '<p>No cards to rank.</p>';
+    resultsEl.innerHTML = '<p class="picker-empty">No cards to rank.</p>';
     return;
   }
 

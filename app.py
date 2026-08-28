@@ -100,6 +100,75 @@ def estimate_savings_from_discount(discount_str, amount):
     return round(amount * (pct / 100.0), 2), kind
 
 
+def merchant_listed_category(merchant_name, merchants, offers):
+    """Category from the merchant directory, falling back to any offer at that merchant."""
+    q = (merchant_name or '').strip().lower()
+    if not q:
+        return None
+    for row in merchants or []:
+        if (row.get('name') or '').lower() == q:
+            cat = (row.get('category') or '').strip()
+            if cat:
+                return cat
+    for offer in offers or []:
+        if (offer.get('merchant') or '').lower() == q and offer.get('category'):
+            return offer.get('category')
+    return None
+
+
+def picker_empty_reason(merchant, category, offers, merchants):
+    """
+    Strict purchase match:
+    - merchant + category must both fit (Apex is Shopping, not Dining)
+      and need a live offer at that merchant in that category
+    - category only needs at least one live deal in that category
+    - merchant only can always rank (cashback still applies in-store)
+    """
+    merchant = (merchant or '').strip()
+    category = (category or '').strip()
+    live = [o for o in (offers or []) if not o.get('isExpired')]
+
+    if merchant and category:
+        listed = merchant_listed_category(merchant, merchants, offers)
+        if listed and listed.lower() != category.lower():
+            return (
+                f"{merchant} is listed as {listed}, so you can't use a {category} spend there."
+            )
+        matches = [
+            o for o in live
+            if (o.get('merchant') or '').lower() == merchant.lower()
+            and (o.get('category') or '').lower() == category.lower()
+        ]
+        if not matches:
+            return (
+                f"No live {category} deals at {merchant} right now. Check Deals & Offers."
+            )
+        return None
+
+    if category and not merchant:
+        matches = [
+            o for o in live
+            if (o.get('category') or '').lower() == category.lower()
+        ]
+        if not matches:
+            return f"No {category} deals right now. Check Deals & Offers."
+        return None
+
+    return None
+
+
+def offer_matches_purchase(offer, merchant_q, category_q):
+    merch_ok = (not merchant_q) or (offer.get('merchant') or '').lower() == merchant_q
+    cat_ok = (not category_q) or (offer.get('category') or '').lower() == category_q
+    if merchant_q and category_q:
+        return merch_ok and cat_ok
+    if merchant_q:
+        return merch_ok
+    if category_q:
+        return cat_ok
+    return False
+
+
 def rank_cards_for_purchase(cards, offers, merchant, category, amount):
     """Rank cards by estimated savings for a merchant and/or category spend."""
     amount = float(amount) if amount else 0.0
@@ -118,11 +187,7 @@ def rank_cards_for_purchase(cards, offers, merchant, category, amount):
                 continue
             if offer.get('bankId') != bank_id:
                 continue
-            merch_ok = bool(merchant_q) and offer.get('merchant', '').lower() == merchant_q
-            cat_ok = bool(category_q) and (offer.get('category') or '').lower() == category_q
-            if merchant_q and merch_ok:
-                matching.append(offer)
-            elif not merchant_q and category_q and cat_ok:
+            if offer_matches_purchase(offer, merchant_q, category_q):
                 matching.append(offer)
 
         best_offer = None
@@ -210,6 +275,58 @@ def ensure_update4_schema():
               KEY offer_id (offer_id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
+        mysql.connection.commit()
+    except Exception:
+        mysql.connection.rollback()
+    for stmt in (
+        "ALTER TABLE users ADD COLUMN phone VARCHAR(20) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN nid VARCHAR(20) DEFAULT NULL",
+        "ALTER TABLE users ADD COLUMN phone_verified TINYINT(1) NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN nid_verified TINYINT(1) NOT NULL DEFAULT 0",
+    ):
+        try:
+            cur.execute(stmt)
+            mysql.connection.commit()
+        except Exception:
+            mysql.connection.rollback()
+    extra_articles = [
+        (
+            'Debit vs Credit: Which Card Should You Carry?',
+            'Credit Basics',
+            'A simple way to choose between debit and credit for everyday spending in Bangladesh.',
+            'Debit cards spend money you already have. Credit cards borrow from the bank and must be repaid. For groceries and small bills, debit keeps you inside your salary. Use credit when the card has a real perk — cashback, EMI, or a live merchant offer — and only if you can pay the statement in full. If you cannot clear the bill, the APR usually costs more than the discount you just earned. On Savings, save both types on Card Perks, then let Best Card Picker rank the one that actually fits the purchase.',
+            '6 min'
+        ),
+        (
+            'Annual Fee vs Cashback: Do the Math',
+            'Smart Spending',
+            'A high cashback card is only a win if you spend enough to cover the yearly fee.',
+            'Write down the annual fee, the cashback rate, and a realistic monthly spend. Example: a 3,000 BDT fee with 5% cashback needs about 60,000 BDT of qualifying spend per year just to break even. Fees quoted as "1500" and "1500 BDT" are the same number — compare them in BDT, not by looking at the prettier card. Lounge access and points only count if you actually use them. If your spend is low, a cheap debit card plus a live Deals & Offers promo often beats a premium credit card that sits in the drawer.',
+            '5 min'
+        ),
+        (
+            'How to Read an Offer Before You Redeem',
+            'Smart Spending',
+            'Title, merchant, category, and valid-until date matter more than the big percentage.',
+            'Open the deal and check four things. Merchant: the discount applies at that brand, not the whole category. Category: Dining at Apex will not work if Apex is listed as Shopping. Discount type: 20% is a rate, BOGO is roughly half on a second item, Free Item is a bonus not a fake percent. Valid until: expired offers stay visible so you can learn the pattern, but Pay/Redeem is blocked. Watchlist a deal that ends within two weeks so Dashboard can remind you. When you redeem, enter the real amount — Savings estimates savings from the offer, it does not charge the merchant.',
+            '5 min'
+        ),
+        (
+            'Stay Safe With Cards and OTPs',
+            'Debt Management',
+            'Most card loss in Bangladesh is social engineering, not a broken website.',
+            'Never share an OTP, PIN, or full card number on the phone or in chat, even if the caller names your bank. Banks do not ask you to read an SMS code to "unlock cashback". Use the official app or branch for disputes. On this site, login sessions last a day — log out on shared computers. Receipt upload sends a photo to an OCR model to guess category and amount; you still confirm before anything is saved. If a deal looks too large to be real (for example 99 million BDT on a grocery promo), treat it as a demo figure, not a target.',
+            '4 min'
+        ),
+    ]
+    try:
+        for title, category, summary, content, read_time in extra_articles:
+            cur.execute("SELECT id FROM articles WHERE title = %s", (title,))
+            if not cur.fetchone():
+                cur.execute(
+                    "INSERT INTO articles (title, category, summary, content, read_time) VALUES (%s, %s, %s, %s, %s)",
+                    (title, category, summary, content, read_time)
+                )
         mysql.connection.commit()
     except Exception:
         mysql.connection.rollback()
@@ -764,6 +881,9 @@ def recommend_card():
             "bankId": r[8], "isExpired": bool(r[9])
         } for r in offer_rows]
 
+        cur.execute("SELECT name, category FROM merchants")
+        merchants = [{"name": r[0], "category": r[1]} for r in cur.fetchall()]
+
         used_wallet = False
         cards = []
         if session.get('user_id'):
@@ -798,14 +918,26 @@ def recommend_card():
                 "annualFee": r[7], "bankName": r[8], "bankId": r[9], "fromWallet": False
             } for r in all_rows]
 
+        empty_reason = picker_empty_reason(merchant, category, offers, merchants)
         cur.close()
+        if empty_reason:
+            return jsonify({
+                "usedWallet": used_wallet,
+                "amount": amount,
+                "merchant": merchant or None,
+                "category": category or None,
+                "cards": [],
+                "emptyReason": empty_reason
+            })
+
         ranked = rank_cards_for_purchase(cards, offers, merchant, category, amount)
         return jsonify({
             "usedWallet": used_wallet,
             "amount": amount,
             "merchant": merchant or None,
             "category": category or None,
-            "cards": ranked
+            "cards": ranked,
+            "emptyReason": None
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -883,10 +1015,25 @@ def get_profile():
 
         user_id = session['user_id']
         cur = mysql.connection.cursor()
-        cur.execute("SELECT name, email FROM users WHERE id = %s", (user_id,))
+        cur.execute(
+            "SELECT name, email, phone, nid, phone_verified, nid_verified FROM users WHERE id = %s",
+            (user_id,)
+        )
         user = cur.fetchone()
         cur.close()
-        return jsonify({"name": user[0], "email": user[1]})
+        if not user:
+            return jsonify({"error": "Not found"}), 404
+        phone_verified = bool(user[4])
+        nid_verified = bool(user[5])
+        return jsonify({
+            "name": user[0],
+            "email": user[1],
+            "phone": user[2] or '',
+            "nid": user[3] or '',
+            "phoneVerified": phone_verified,
+            "nidVerified": nid_verified,
+            "accountVerified": phone_verified and nid_verified
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -917,6 +1064,87 @@ def update_profile():
 
         session['user_name'] = name
         return jsonify({"success": True, "name": name})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+def valid_bd_phone(phone):
+    digits = re.sub(r'\D', '', phone or '')
+    if digits.startswith('880') and len(digits) == 13:
+        digits = digits[3:]
+    return bool(re.fullmatch(r'01[3-9]\d{8}', digits)), digits
+
+
+def valid_bd_nid(nid):
+    digits = re.sub(r'\D', '', nid or '')
+    return len(digits) in (10, 13, 17), digits
+
+
+@app.route('/api/profile/verification', methods=['PUT'])
+def update_verification():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        user_id = session['user_id']
+        data = request.get_json() or {}
+        step = (data.get('step') or '').strip().lower()
+
+        cur = mysql.connection.cursor()
+
+        if step == 'phone':
+            ok, digits = valid_bd_phone(data.get('phone'))
+            if not ok:
+                cur.close()
+                return jsonify({
+                    "success": False,
+                    "error": "Enter a valid Bangladeshi mobile number (01XXXXXXXXX)"
+                }), 400
+            cur.execute(
+                "UPDATE users SET phone = %s, phone_verified = 1 WHERE id = %s",
+                (digits, user_id)
+            )
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({"success": True, "phone": digits, "phoneVerified": True})
+
+        if step == 'nid':
+            ok, digits = valid_bd_nid(data.get('nid'))
+            if not ok:
+                cur.close()
+                return jsonify({
+                    "success": False,
+                    "error": "Enter a valid NID (10, 13, or 17 digits)"
+                }), 400
+            cur.execute(
+                "UPDATE users SET nid = %s, nid_verified = 1 WHERE id = %s",
+                (digits, user_id)
+            )
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({"success": True, "nid": digits, "nidVerified": True})
+
+        if step == 'confirm':
+            cur.execute(
+                "SELECT phone, nid, phone_verified, nid_verified FROM users WHERE id = %s",
+                (user_id,)
+            )
+            row = cur.fetchone()
+            cur.close()
+            if not row or not row[2] or not row[3]:
+                return jsonify({
+                    "success": False,
+                    "error": "Complete phone and NID steps first"
+                }), 400
+            return jsonify({
+                "success": True,
+                "accountVerified": True,
+                "phone": row[0],
+                "nid": row[1]
+            })
+
+        cur.close()
+        return jsonify({"success": False, "error": "Unknown verification step"}), 400
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
