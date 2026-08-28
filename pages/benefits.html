@@ -7,6 +7,7 @@
   <title>Deals & Offers - Savings</title>
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/toast.css">
   <link rel="stylesheet" href="../css/benefits.css">
 </head>
 
@@ -17,6 +18,7 @@
     <ul class="nav-links">
       <li><a href="../index.html">Home</a></li>
       <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="card-picker.html">Best Card</a></li>
       <li><a href="benefits.html">Deals & Offers</a></li>
       <li><a href="financial-education.html">Financial Education</a></li>
       <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
@@ -32,6 +34,11 @@
     </div>
 
     <div id="offers-view">
+      <div class="deals-toolbar">
+        <input type="text" id="offer-search" class="search-input" placeholder="Search by title, merchant, or bank...">
+        <label class="toggle-row"><input type="checkbox" id="for-you-toggle"> For You</label>
+        <label class="toggle-row"><input type="checkbox" id="show-expired-toggle"> Show expired</label>
+      </div>
       <div class="filter-bar" id="filter-bar">
         <button class="filter-btn active" data-category="All">All</button>
       </div>
@@ -49,6 +56,7 @@
     </div>
   </div>
 
+  <script src="../js/toast.js"></script>
   <script>const NAV_BASE = '';</script>
   <script src="../js/nav-auth.js"></script>
   <script src="../js/benefits.js"></script>

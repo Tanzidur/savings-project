@@ -134,7 +134,11 @@ INSERT INTO `merchants` (`id`, `name`, `category`, `description`, `address`) VAL
 (2, 'Star Cineplex', 'Entertainment', 'Premier cinema chain across Bangladesh', 'Bashundhara City, Dhaka'),
 (3, 'Pizza Hut', 'Dining', 'International pizza and dine-in restaurant chain', 'Gulshan, Dhaka'),
 (4, 'Shwapno', 'Shopping', 'Retail supermarket chain for groceries and essentials', 'Multiple locations'),
-(5, 'Biman Bangladesh', 'Travel', 'National flag carrier airline of Bangladesh', 'Motijheel, Dhaka');
+(5, 'Biman Bangladesh', 'Travel', 'National flag carrier airline of Bangladesh', 'Motijheel, Dhaka'),
+(6, 'Chaldal', 'Shopping', 'Online grocery delivery across Dhaka', 'Online'),
+(7, 'US-Bangla Airlines', 'Travel', 'Domestic and regional airline', 'Dhaka'),
+(8, 'Coffee World', 'Dining', 'Cafe chain for coffee and pastries', 'Multiple locations'),
+(9, 'Apex', 'Shopping', 'Footwear and accessories retailer', 'Multiple locations');
 
 -- --------------------------------------------------------
 
@@ -189,31 +193,32 @@ CREATE TABLE `transactions` (
   `amount` decimal(10,2) DEFAULT NULL,
   `transaction_date` date DEFAULT NULL,
   `offer_title` varchar(150) DEFAULT NULL,
-  `description` varchar(255) DEFAULT NULL
+  `description` varchar(255) DEFAULT NULL,
+  `savings_amount` decimal(10,2) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `transactions`
 --
 
-INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`, `description`) VALUES
-(1, 1, 'Shopping', 3500.00, '2026-07-01', NULL, NULL),
-(2, 1, 'Dining', 1200.00, '2026-07-05', NULL, NULL),
-(3, 1, 'Groceries', 2800.00, '2026-07-08', NULL, NULL),
-(4, 1, 'Entertainment', 900.00, '2026-07-12', NULL, NULL),
-(5, 1, 'Travel', 4500.00, '2026-07-15', NULL, NULL),
-(6, 1, 'Shopping', 1800.00, '2026-07-18', NULL, NULL),
-(7, 2, 'Entertainment', 200.00, '2026-08-09', NULL, NULL),
-(8, 2, 'Entertainment', 1200.00, '2026-08-09', NULL, NULL),
-(9, 2, 'Travel', 25000.00, '2026-08-09', NULL, NULL),
-(10, 2, 'Travel', 555555.00, '2026-08-09', NULL, NULL),
-(11, 2, 'Travel', 1500.00, '2026-08-09', NULL, NULL),
-(12, 2, 'Dining', 500000.00, '2026-08-09', '15% Off Dine-in', NULL),
-(13, 2, 'Shopping', 99999999.99, '2026-08-09', '10% Cashback Groceries', NULL),
-(14, 1, 'Travel', 12000.00, '2026-08-09', '5% Off Flight Bookings', NULL),
-(15, 1, 'Groceries', 148.33, '2026-08-23', NULL, 'Groceries at Cedar Spar'),
-(16, 1, 'Dining', 2555.00, '2026-08-23', 'Free Drink with Large Pizza', 'Free Drink with Large Pizza'),
-(17, 1, 'Travel', 25252.00, '2026-08-24', '10% Off Seat Upgrades', '10% Off Seat Upgrades');
+INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`, `description`, `savings_amount`) VALUES
+(1, 1, 'Shopping', 3500.00, '2026-07-01', NULL, NULL, 0),
+(2, 1, 'Dining', 1200.00, '2026-07-05', NULL, NULL, 0),
+(3, 1, 'Groceries', 2800.00, '2026-07-08', NULL, NULL, 0),
+(4, 1, 'Entertainment', 900.00, '2026-07-12', NULL, NULL, 0),
+(5, 1, 'Travel', 4500.00, '2026-07-15', NULL, NULL, 0),
+(6, 1, 'Shopping', 1800.00, '2026-07-18', NULL, NULL, 0),
+(7, 2, 'Entertainment', 200.00, '2026-08-09', NULL, NULL, 0),
+(8, 2, 'Entertainment', 1200.00, '2026-08-09', NULL, NULL, 0),
+(9, 2, 'Travel', 25000.00, '2026-08-09', NULL, NULL, 0),
+(10, 2, 'Travel', 555555.00, '2026-08-09', NULL, NULL, 0),
+(11, 2, 'Travel', 1500.00, '2026-08-09', NULL, NULL, 0),
+(12, 2, 'Dining', 500000.00, '2026-08-09', '15% Off Dine-in', NULL, 0),
+(13, 2, 'Shopping', 99999999.99, '2026-08-09', '10% Cashback Groceries', NULL, 0),
+(14, 1, 'Travel', 12000.00, '2026-08-09', '5% Off Flight Bookings', NULL, 0),
+(15, 1, 'Groceries', 148.33, '2026-08-23', NULL, 'Groceries at Cedar Spar', 0),
+(16, 1, 'Dining', 2555.00, '2026-08-23', 'Free Drink with Large Pizza', 'Free Drink with Large Pizza', 0),
+(17, 1, 'Travel', 25252.00, '2026-08-24', '10% Off Seat Upgrades', '10% Off Seat Upgrades', 0);
 
 -- --------------------------------------------------------
 
@@ -236,6 +241,19 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `created_at`) VALUES
 (1, 'Tanzidur Rahman', 'tanzidurrahman@gmail.com', 'scrypt:32768:8:1$J5TK20WAdpBbj79O$7c5565fee97bb2a8bba084216594905ba2759a9452f5bd76333db42399d9939b4ca510b7bdccf7b78376ae9ec5cde099ba10a08d0d0d6417210370c0ccda92bd', '2026-07-23 14:25:48'),
 (2, 'Afid Mostakim', 'afidmostakim@gmail.com', 'scrypt:32768:8:1$5lcDvuaXS5Yp3oNM$7d7b1c194abc9ff66405eea2510e9e5d3f270591aced8f6168d7b89a59320042d1a01c50f9ba3529ce65dedb4c58f8643450dc334caad6ad560d10120c046bf2', '2026-08-02 06:13:08');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `offer_watchlist`
+--
+
+CREATE TABLE `offer_watchlist` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `offer_id` int(11) NOT NULL,
+  `added_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -298,6 +316,15 @@ ALTER TABLE `offers`
   ADD KEY `bank_id` (`bank_id`);
 
 --
+-- Indexes for table `offer_watchlist`
+--
+ALTER TABLE `offer_watchlist`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_offer` (`user_id`, `offer_id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `offer_id` (`offer_id`);
+
+--
 -- Indexes for table `transactions`
 --
 ALTER TABLE `transactions`
@@ -333,13 +360,19 @@ ALTER TABLE `articles`
 -- AUTO_INCREMENT for table `merchants`
 --
 ALTER TABLE `merchants`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `offers`
 --
 ALTER TABLE `offers`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `offer_watchlist`
+--
+ALTER TABLE `offer_watchlist`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `transactions`
@@ -374,6 +407,13 @@ ALTER TABLE `cards`
 --
 ALTER TABLE `offers`
   ADD CONSTRAINT `offers_ibfk_1` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`);
+
+--
+-- Constraints for table `offer_watchlist`
+--
+ALTER TABLE `offer_watchlist`
+  ADD CONSTRAINT `watchlist_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `watchlist_offer` FOREIGN KEY (`offer_id`) REFERENCES `offers` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `transactions`

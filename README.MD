@@ -17,7 +17,9 @@ savings-project/
 ├── .gitignore
 ├── venv/                ← local only, not pushed (see .gitignore)
 ├── database/
-│   └── savings_db.sql   ← DB export, import this to get all tables + data
+│   ├── savings_db.sql   ← DB export, import this to get all tables + data
+│   └── update4.sql      ← offer_watchlist + transactions.savings_amount (also auto-applied on API start)
+
 ├── css/
 │   ├── variables.css        ← shared colors/fonts, import this FIRST on every page
 │   ├── nav.css               ← shared navbar, spinner/loading-state styles
@@ -25,6 +27,7 @@ savings-project/
 │   ├── style.css             ← landing page styles
 │   ├── login.css
 │   ├── card-selection.css
+│   ├── card-picker.css
 │   ├── benefits.css
 │   ├── financial-education.css
 │   ├── dashboard.css
@@ -39,6 +42,7 @@ savings-project/
 │   ├── script.js
 │   ├── login.js
 │   ├── card-selection.js
+│   ├── card-picker.js
 │   ├── benefits.js
 │   ├── financial-education.js
 │   ├── dashboard.js
@@ -50,6 +54,7 @@ savings-project/
 ├── pages/                    ← every new page goes here
 │   ├── login.html
 │   ├── card-selection.html
+│   ├── card-picker.html
 │   ├── benefits.html
 │   ├── financial-education.html
 │   ├── dashboard.html
@@ -121,15 +126,16 @@ Go to **http://127.0.0.1:5000/** in your browser (not Live Server — Flask serv
 1. Landing Page ✅ — Tanzidur
 2. Login / Register ✅ — Tanzidur (real auth, hashed passwords, persistent sessions)
 3. Profile Management ✅ — Tanzidur (edit name/email, change password, connected to real accounts)
-4. Card Perks (was Card Selection) ✅ — connected to MySQL, filterable grid, save/remove cards to account
-5. Deals & Offers ✅ — connected to MySQL, "Browse by Merchant" tab, links to Offer Detail page
-6. Offer Detail ✅ — full offer info, "Pay / Redeem" → Payout
-7. Payout ✅ — pick a saved card, enter amount spent, writes a real transaction, static "Payment Successful" screen
-8. Financial Education ✅ — connected to MySQL
-9. Dashboard ✅ — logged-in user's name, spending pie chart, recent transactions (clickable for details), saved cards ("My Cards", removable), link to Upload Receipt
-10. Receipt Upload ✅ — Tanzidur (new) — upload a photo, Gemini AI extracts category/amount/description, user confirms before saving
-11. Transaction Detail ✅ — Tanzidur (new) — click any transaction on Dashboard to see its full description
-12. Admin Panel ✅ — Afid & Tarif — full CRUD for banks, cards, offers (with expiry), merchants, and articles. Hardcoded admin login, separate session flag from customer accounts. Admin link in the footer hides itself when a customer is logged in.
+4. Card Perks (was Card Selection) ✅ — connected to MySQL, filterable grid, save/remove cards to account, side-by-side compare (up to 3 cards)
+5. Deals & Offers ✅ — connected to MySQL, "Browse by Merchant" tab, search, For You (saved banks), watchlist stars, hide expired by default
+6. Best Card Picker ✅ — ranks saved cards (or the full catalog) by estimated savings for a merchant/category spend
+7. Offer Detail ✅ — full offer info, watchlist, "Pay / Redeem" → Payout
+8. Payout ✅ — pick a saved card, enter amount spent, writes a real transaction with estimated savings
+9. Financial Education ✅ — connected to MySQL
+10. Dashboard ✅ — spending pie chart, monthly savings total, watchlist expiry strip (14 days), recent transactions, My Cards
+11. Receipt Upload ✅ — Tanzidur — upload a photo, Gemini AI extracts category/amount/description, user confirms before saving
+12. Transaction Detail ✅ — Tanzidur — click any transaction on Dashboard to see its full description
+13. Admin Panel ✅ — Afid & Tarif — full CRUD for banks, cards, offers (with expiry), merchants, and articles. Hardcoded admin login, separate session flag from customer accounts. Admin link in the footer hides itself when a customer is logged in.
 
 ## Update 1 (submitted)
 4 pages connected to a real MySQL database through Flask: Card Selection, Benefits, Merchant Directory, Financial Education. Each fetches from its own API route. Landing page included as static context.
@@ -178,6 +184,16 @@ Afid and Tarif built their admin work independently and somewhat differently str
 - **Afid** — Admin Panel: Offers CRUD (including validity date), real-time offer expiry logic (both the display-side graying-out and the admin-side date input).
 - **Tarif** — Admin Panel: Banks CRUD, Cards CRUD, Merchants CRUD, Articles/Financial Education CRUD, admin login/dashboard shell and sidebar UI (which the rest of the admin panel was built on top of).
 
+## Update 4
+
+Faculty feedback after Update 3: more product features (92/100). This update turns the catalog into a decision tool.
+
+- **Best Card Picker** — `GET /api/recommend` ranks saved cards (fallback: all cards) by estimated savings. Matching non-expired offers beat a card's cashback rate when the discount parses higher. BOGO is counted as 50% of spend for ranking (documented demo assumption); Free Item is a labeled bonus, not a fake percent.
+- **Personalized deals** — search by title/merchant/bank, For You (offers for banks of saved cards), ending-soon sort, expired hidden unless "Show expired" is checked.
+- **Card compare** — select up to 3 cards on Card Perks; table includes estimated yearly cashback minus annual fee from a sample monthly spend (default 20,000 BDT).
+- **Watchlist** — `offer_watchlist` table; star on deal cards and Offer Detail. Dashboard lists watched offers expiring within 14 days.
+- **Monthly savings** — redeem writes `transactions.savings_amount`. Dashboard shows "This month you saved … BDT". Existing databases get the new column/table on the next `/api/` request (or import `database/update4.sql`).
+
 ## Progress Log
 - 14/07 — Project structure set up, landing page built, `variables.css` added, pages divided among the team.
 - 15/07 — Login/Register page built (UI only, in-memory). Profile Management planned but not started at this point.
@@ -191,3 +207,4 @@ Afid and Tarif built their admin work independently and somewhat differently str
 - 22/08 — (Tanzidur) Receipt OCR built end-to-end: upload page, Gemini API integration with multi-key rotation, editable confirm step, saves to a real transaction. Profile Management built from scratch. Saved cards can now be removed. Transactions are clickable, showing full details on their own page.
 - 22/08 — Moved Profile access from navbar name-click to a dedicated settings icon (fixed-position, top-right of Dashboard) — clicking your name goes back to Dashboard. Fixed Dashboard's missing `.btn-primary` style (Upload Receipt button was rendering as a plain unstyled link). Tanzidur's full share of Update 3 is complete — only Admin Panel (Afid/Tarif) remains for this update.
 - 23/08 — Tarif and Afid delivered independently-built Admin Panels; merged into one, standardizing on Tarif's `admin_required`/session pattern and sidebar layout. Full CRUD live for banks, cards, merchants, articles, and offers. Real-time offer expiry built and demonstrable (added sample offers with past/future dates). Admin footer link now hides for logged-in customers. Update 3 submitted — all three faculty-requested items complete.
+- 28/08 — Update 4: Best Card Picker, For You + search on Deals, side-by-side card compare, offer watchlist with 14-day expiry strip, and monthly savings on Dashboard.

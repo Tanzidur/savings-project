@@ -1,4 +1,5 @@
 import os
+import re
 import base64
 import json
 from functools import wraps
@@ -49,6 +50,180 @@ mysql = MySQL(app)
 GEMINI_KEYS = [k.strip() for k in os.environ.get('GEMINI_API_KEYS', '').split(',') if k.strip()]
 GEMINI_MODEL = 'gemini-3.5-flash-lite'
 ALLOWED_CATEGORIES = ['Shopping', 'Dining', 'Groceries', 'Entertainment', 'Travel', 'Other']
+
+_schema_ready = False
+
+
+def parse_percent(value):
+    """Best-effort parse of strings like '10%', '1.5%', or bare '10'."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    lower = text.lower()
+    if 'bogo' in lower:
+        return None
+    if 'free' in lower:
+        return None
+    match = re.search(r'(\d+(?:\.\d+)?)\s*%', text)
+    if match:
+        return float(match.group(1))
+    match = re.search(r'^(\d+(?:\.\d+)?)$', text)
+    if match:
+        return float(match.group(1))
+    return None
+
+
+def classify_discount(discount_str):
+    if not discount_str:
+        return 'none'
+    lower = str(discount_str).lower()
+    if 'bogo' in lower:
+        return 'bogo'
+    if 'free' in lower:
+        return 'free_item'
+    if parse_percent(discount_str) is not None:
+        return 'percent'
+    return 'other'
+
+
+def estimate_savings_from_discount(discount_str, amount):
+    """Numeric estimate. BOGO counts as 50% of spend (demo assumption). Free item = 0."""
+    amount = float(amount or 0)
+    kind = classify_discount(discount_str)
+    if kind == 'bogo':
+        return round(amount * 0.5, 2), kind
+    if kind == 'free_item':
+        return 0.0, kind
+    pct = parse_percent(discount_str)
+    if pct is None:
+        return 0.0, kind
+    return round(amount * (pct / 100.0), 2), kind
+
+
+def rank_cards_for_purchase(cards, offers, merchant, category, amount):
+    """Rank cards by estimated savings for a merchant and/or category spend."""
+    amount = float(amount) if amount else 0.0
+    merchant_q = (merchant or '').strip().lower()
+    category_q = (category or '').strip().lower()
+    ranked = []
+
+    for card in cards:
+        bank_id = card['bankId']
+        cashback_pct = parse_percent(card.get('cashback')) or 0.0
+        base_savings = round(amount * (cashback_pct / 100.0), 2) if amount else 0.0
+
+        matching = []
+        for offer in offers:
+            if offer.get('isExpired'):
+                continue
+            if offer.get('bankId') != bank_id:
+                continue
+            merch_ok = bool(merchant_q) and offer.get('merchant', '').lower() == merchant_q
+            cat_ok = bool(category_q) and (offer.get('category') or '').lower() == category_q
+            if merchant_q and merch_ok:
+                matching.append(offer)
+            elif not merchant_q and category_q and cat_ok:
+                matching.append(offer)
+
+        best_offer = None
+        best_offer_savings = -1.0
+        best_kind = 'none'
+        for offer in matching:
+            sav, kind = estimate_savings_from_discount(offer.get('discount'), amount)
+            if sav > best_offer_savings:
+                best_offer_savings = sav
+                best_offer = offer
+                best_kind = kind
+
+        used_offer = False
+        offer_id = None
+        offer_title = None
+        offer_discount = None
+        estimated = base_savings
+
+        if best_offer is not None:
+            if best_kind == 'free_item' and base_savings >= best_offer_savings:
+                reason = (
+                    f"{card.get('cashback')} card cashback beats a non-percentage perk "
+                    f"({best_offer['title']})"
+                )
+            elif best_offer_savings >= base_savings:
+                estimated = best_offer_savings
+                used_offer = True
+                offer_id = best_offer['id']
+                offer_title = best_offer['title']
+                offer_discount = best_offer['discount']
+                reason = f"Matching offer: {best_offer['title']} ({best_offer['discount']})"
+                if best_kind == 'bogo':
+                    reason += " — BOGO counted as 50% of spend for ranking"
+            else:
+                reason = f"{card.get('cashback')} card cashback"
+        elif cashback_pct:
+            reason = f"{card.get('cashback')} card cashback"
+        else:
+            reason = "No matching offer or cashback rate"
+
+        ranked.append({
+            "cardId": card['id'],
+            "network": card.get('network'),
+            "type": card.get('type'),
+            "tier": card.get('tier'),
+            "cashback": card.get('cashback'),
+            "rewardPoints": card.get('rewardPoints'),
+            "emi": card.get('emi'),
+            "annualFee": card.get('annualFee'),
+            "bankId": bank_id,
+            "bankName": card.get('bankName'),
+            "fromWallet": card.get('fromWallet', False),
+            "estimatedSavings": estimated,
+            "reason": reason,
+            "usedOffer": used_offer,
+            "offerId": offer_id,
+            "offerTitle": offer_title,
+            "offerDiscount": offer_discount
+        })
+
+    ranked.sort(key=lambda r: (-r['estimatedSavings'], r['cardId']))
+    return ranked
+
+
+def ensure_update4_schema():
+    global _schema_ready
+    if _schema_ready:
+        return
+    cur = mysql.connection.cursor()
+    try:
+        cur.execute("ALTER TABLE transactions ADD COLUMN savings_amount DECIMAL(10,2) DEFAULT 0")
+        mysql.connection.commit()
+    except Exception:
+        mysql.connection.rollback()
+    try:
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS offer_watchlist (
+              id int(11) NOT NULL AUTO_INCREMENT,
+              user_id int(11) NOT NULL,
+              offer_id int(11) NOT NULL,
+              added_at timestamp NOT NULL DEFAULT current_timestamp(),
+              PRIMARY KEY (id),
+              UNIQUE KEY user_offer (user_id, offer_id),
+              KEY user_id (user_id),
+              KEY offer_id (offer_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+        """)
+        mysql.connection.commit()
+    except Exception:
+        mysql.connection.rollback()
+    cur.close()
+    _schema_ready = True
+
+
+@app.before_request
+def _ensure_schema():
+    if request.path.startswith('/api/'):
+        try:
+            ensure_update4_schema()
+        except Exception:
+            pass
 
 
 def call_gemini_receipt_ocr(image_bytes, mime_type):
@@ -141,7 +316,7 @@ def get_offers():
         cur.execute("""
             SELECT offers.id, offers.merchant, offers.title, offers.description,
                    offers.category, offers.discount, offers.valid_until, banks.name,
-                   (offers.valid_until < CURDATE()) AS is_expired
+                   offers.bank_id, (offers.valid_until < CURDATE()) AS is_expired
             FROM offers
             JOIN banks ON offers.bank_id = banks.id
         """)
@@ -151,7 +326,7 @@ def get_offers():
         result = [{
             "id": r[0], "merchant": r[1], "title": r[2], "description": r[3],
             "category": r[4], "discount": r[5], "validUntil": str(r[6]), "bankName": r[7],
-            "isExpired": bool(r[8])
+            "bankId": r[8], "isExpired": bool(r[9])
         } for r in rows]
 
         return jsonify(result)
@@ -275,13 +450,50 @@ def get_dashboard():
 
         user_id = session['user_id']
         cur = mysql.connection.cursor()
-        cur.execute("SELECT id, category, amount, transaction_date, offer_title, description FROM transactions WHERE user_id = %s ORDER BY transaction_date", (user_id,))
+        cur.execute(
+            "SELECT id, category, amount, transaction_date, offer_title, description, COALESCE(savings_amount, 0) "
+            "FROM transactions WHERE user_id = %s ORDER BY transaction_date",
+            (user_id,)
+        )
         rows = cur.fetchall()
+
+        cur.execute(
+            "SELECT COALESCE(SUM(savings_amount), 0) FROM transactions "
+            "WHERE user_id = %s AND YEAR(transaction_date) = YEAR(CURDATE()) "
+            "AND MONTH(transaction_date) = MONTH(CURDATE())",
+            (user_id,)
+        )
+        monthly_savings = float(cur.fetchone()[0] or 0)
+
+        cur.execute("""
+            SELECT offers.id, offers.merchant, offers.title, offers.discount, offers.valid_until, banks.name
+            FROM offer_watchlist
+            JOIN offers ON offers.id = offer_watchlist.offer_id
+            JOIN banks ON offers.bank_id = banks.id
+            WHERE offer_watchlist.user_id = %s
+              AND offers.valid_until >= CURDATE()
+              AND offers.valid_until <= DATE_ADD(CURDATE(), INTERVAL 14 DAY)
+            ORDER BY offers.valid_until
+        """, (user_id,))
+        expiring_rows = cur.fetchall()
         cur.close()
 
-        transactions = [{"id": r[0], "category": r[1], "amount": float(r[2]), "date": str(r[3]), "offerTitle": r[4], "description": r[5]} for r in rows]
+        transactions = [{
+            "id": r[0], "category": r[1], "amount": float(r[2]), "date": str(r[3]),
+            "offerTitle": r[4], "description": r[5], "savingsAmount": float(r[6] or 0)
+        } for r in rows]
 
-        return jsonify({"name": session.get('user_name'), "transactions": transactions})
+        expiring = [{
+            "id": r[0], "merchant": r[1], "title": r[2], "discount": r[3],
+            "validUntil": str(r[4]), "bankName": r[5]
+        } for r in expiring_rows]
+
+        return jsonify({
+            "name": session.get('user_name'),
+            "transactions": transactions,
+            "monthlySavings": monthly_savings,
+            "expiringOffers": expiring
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -357,7 +569,7 @@ def get_my_cards():
         cur = mysql.connection.cursor()
         cur.execute("""
             SELECT cards.id, cards.network, cards.type, cards.tier, cards.cashback,
-                   cards.reward_points, cards.emi, cards.annual_fee, banks.name
+                   cards.reward_points, cards.emi, cards.annual_fee, banks.name, cards.bank_id
             FROM user_cards
             JOIN cards ON user_cards.card_id = cards.id
             JOIN banks ON cards.bank_id = banks.id
@@ -369,7 +581,7 @@ def get_my_cards():
         result = [{
             "id": r[0], "network": r[1], "type": r[2], "tier": r[3],
             "cashback": r[4], "rewardPoints": r[5], "emi": bool(r[6]),
-            "annualFee": r[7], "bankName": r[8]
+            "annualFee": r[7], "bankName": r[8], "bankId": r[9]
         } for r in rows]
         return jsonify(result)
     except Exception as e:
@@ -424,28 +636,72 @@ def redeem_offer():
 
         user_id = session['user_id']
         data = request.get_json()
-        category = data.get('category')
         amount = data.get('amount')
-        offer_title = data.get('offerTitle')
+        offer_id = data.get('offerId')
+        card_id = data.get('cardId')
 
-        if not category or not amount:
-            return jsonify({"success": False, "error": "Missing category or amount"}), 400
+        if not offer_id:
+            return jsonify({"success": False, "error": "Offer is required"}), 400
 
         try:
             amount = float(amount)
             if amount <= 0:
                 raise ValueError
-        except ValueError:
+        except (TypeError, ValueError):
             return jsonify({"success": False, "error": "Invalid amount"}), 400
 
         cur = mysql.connection.cursor()
         cur.execute(
-            "INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title, description) VALUES (%s, %s, %s, CURDATE(), %s, %s)",
-            (user_id, category, amount, offer_title, offer_title)
+            "SELECT offers.discount, offers.title, offers.category, offers.bank_id, banks.name, "
+            "(offers.valid_until < CURDATE()) AS is_expired "
+            "FROM offers JOIN banks ON offers.bank_id = banks.id WHERE offers.id = %s",
+            (offer_id,)
+        )
+        offer_row = cur.fetchone()
+        if not offer_row:
+            cur.close()
+            return jsonify({"success": False, "error": "Offer not found"}), 404
+
+        discount, offer_title, category, offer_bank_id, partner_bank, is_expired = (
+            offer_row[0], offer_row[1], offer_row[2], offer_row[3], offer_row[4], bool(offer_row[5])
+        )
+        if is_expired:
+            cur.close()
+            return jsonify({"success": False, "error": "This offer has expired"}), 400
+
+        if not card_id:
+            cur.close()
+            return jsonify({
+                "success": False,
+                "error": f"Select a saved {partner_bank} card to redeem this offer"
+            }), 400
+
+        cur.execute("""
+            SELECT cards.bank_id FROM user_cards
+            JOIN cards ON user_cards.card_id = cards.id
+            WHERE user_cards.user_id = %s AND user_cards.card_id = %s
+        """, (user_id, card_id))
+        card_row = cur.fetchone()
+        if not card_row:
+            cur.close()
+            return jsonify({"success": False, "error": "That card is not saved to your account"}), 400
+        if card_row[0] != offer_bank_id:
+            cur.close()
+            return jsonify({
+                "success": False,
+                "error": f"This offer can only be redeemed with a saved {partner_bank} card."
+            }), 403
+
+        savings_amount, _ = estimate_savings_from_discount(discount, amount)
+
+        cur.execute(
+            "INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title, description, savings_amount) "
+            "VALUES (%s, %s, %s, CURDATE(), %s, %s, %s)",
+            (user_id, category, amount, offer_title, offer_title, savings_amount)
         )
         mysql.connection.commit()
         cur.close()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "savingsAmount": savings_amount})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -469,6 +725,151 @@ def ocr_receipt():
 
         result = call_gemini_receipt_ocr(image_bytes, mime_type)
         return jsonify({"success": True, "data": result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+# ---------- RECOMMEND BEST CARD ----------
+@app.route('/api/recommend')
+def recommend_card():
+    try:
+        merchant = (request.args.get('merchant') or '').strip()
+        category = (request.args.get('category') or '').strip()
+        amount_raw = request.args.get('amount')
+
+        if not merchant and not category:
+            return jsonify({"error": "Provide a merchant or category"}), 400
+
+        amount = None
+        if amount_raw not in (None, ''):
+            try:
+                amount = float(amount_raw)
+                if amount < 0:
+                    raise ValueError
+            except ValueError:
+                return jsonify({"error": "Invalid amount"}), 400
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT offers.id, offers.merchant, offers.title, offers.description,
+                   offers.category, offers.discount, offers.valid_until, banks.name,
+                   offers.bank_id, (offers.valid_until < CURDATE()) AS is_expired
+            FROM offers
+            JOIN banks ON offers.bank_id = banks.id
+        """)
+        offer_rows = cur.fetchall()
+        offers = [{
+            "id": r[0], "merchant": r[1], "title": r[2], "description": r[3],
+            "category": r[4], "discount": r[5], "validUntil": str(r[6]), "bankName": r[7],
+            "bankId": r[8], "isExpired": bool(r[9])
+        } for r in offer_rows]
+
+        used_wallet = False
+        cards = []
+        if session.get('user_id'):
+            cur.execute("""
+                SELECT cards.id, cards.network, cards.type, cards.tier, cards.cashback,
+                       cards.reward_points, cards.emi, cards.annual_fee, banks.name, cards.bank_id
+                FROM user_cards
+                JOIN cards ON user_cards.card_id = cards.id
+                JOIN banks ON cards.bank_id = banks.id
+                WHERE user_cards.user_id = %s
+            """, (session['user_id'],))
+            wallet_rows = cur.fetchall()
+            if wallet_rows:
+                used_wallet = True
+                cards = [{
+                    "id": r[0], "network": r[1], "type": r[2], "tier": r[3],
+                    "cashback": r[4], "rewardPoints": r[5], "emi": bool(r[6]),
+                    "annualFee": r[7], "bankName": r[8], "bankId": r[9], "fromWallet": True
+                } for r in wallet_rows]
+
+        if not cards:
+            cur.execute("""
+                SELECT cards.id, cards.network, cards.type, cards.tier, cards.cashback,
+                       cards.reward_points, cards.emi, cards.annual_fee, banks.name, cards.bank_id
+                FROM cards
+                JOIN banks ON cards.bank_id = banks.id
+            """)
+            all_rows = cur.fetchall()
+            cards = [{
+                "id": r[0], "network": r[1], "type": r[2], "tier": r[3],
+                "cashback": r[4], "rewardPoints": r[5], "emi": bool(r[6]),
+                "annualFee": r[7], "bankName": r[8], "bankId": r[9], "fromWallet": False
+            } for r in all_rows]
+
+        cur.close()
+        ranked = rank_cards_for_purchase(cards, offers, merchant, category, amount)
+        return jsonify({
+            "usedWallet": used_wallet,
+            "amount": amount,
+            "merchant": merchant or None,
+            "category": category or None,
+            "cards": ranked
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ---------- OFFER WATCHLIST ----------
+@app.route('/api/watchlist', methods=['GET'])
+def get_watchlist():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        user_id = session['user_id']
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT offers.id FROM offer_watchlist
+            JOIN offers ON offers.id = offer_watchlist.offer_id
+            WHERE offer_watchlist.user_id = %s
+        """, (user_id,))
+        ids = [r[0] for r in cur.fetchall()]
+        cur.close()
+        return jsonify({"offerIds": ids})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/watchlist', methods=['POST'])
+def add_watchlist():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        user_id = session['user_id']
+        offer_id = request.get_json().get('offerId')
+        if not offer_id:
+            return jsonify({"success": False, "error": "offerId is required"}), 400
+
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "INSERT IGNORE INTO offer_watchlist (user_id, offer_id) VALUES (%s, %s)",
+            (user_id, offer_id)
+        )
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/watchlist/<int:offer_id>', methods=['DELETE'])
+def remove_watchlist(offer_id):
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        user_id = session['user_id']
+        cur = mysql.connection.cursor()
+        cur.execute(
+            "DELETE FROM offer_watchlist WHERE user_id = %s AND offer_id = %s",
+            (user_id, offer_id)
+        )
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

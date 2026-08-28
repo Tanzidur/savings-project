@@ -20,6 +20,52 @@ body {
   margin-bottom: 1.5rem;
 }
 
+.savings-banner {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 1.25rem;
+  color: #555;
+}
+
+.savings-banner strong {
+  color: var(--color-primary);
+  font-size: 1.25rem;
+}
+
+.expiring-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 1.5rem;
+}
+
+.expiring-card h3 {
+  margin: 0 0 0.75rem 0;
+}
+
+.expiring-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid #eee;
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+.expiring-row:last-child {
+  border-bottom: none;
+}
+
+.expiring-row span:last-child {
+  color: #999;
+  font-size: 0.8rem;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

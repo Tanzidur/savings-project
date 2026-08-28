@@ -30,6 +30,29 @@ body {
     line-height: 1.6;
 }
 
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-secondary {
+    display: inline-block;
+    background-color: var(--color-white);
+    color: var(--color-primary);
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    border: 2px solid var(--color-primary);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(11, 110, 79, 0.06);
+}
+
 .btn-primary {
     display: inline-block;
     background-color: var(--color-primary);

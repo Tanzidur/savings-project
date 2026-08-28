@@ -15,6 +15,7 @@
     <ul class="nav-links">
       <li><a href="../index.html">Home</a></li>
       <li><a href="card-selection.html">Card Perks</a></li>
+      <li><a href="card-picker.html">Best Card</a></li>
       <li><a href="benefits.html">Deals & Offers</a></li>
       <li><a href="financial-education.html">Financial Education</a></li>
       <li id="nav-auth-item"><a href="login.html" class="btn-login">Login</a></li>
@@ -23,6 +24,21 @@
 
   <div class="page-container">
     <h1>Card Perks</h1>
+    <p class="page-subtitle">Browse cards by bank, save them to your account, or pick up to three to compare.</p>
+
+    <section id="compare-section">
+      <h3>Compare cards</h3>
+      <p class="compare-hint">Check up to 3 cards below, then compare cashback, fees, and estimated yearly value.</p>
+      <div class="compare-controls">
+        <label>Sample monthly spend (BDT)
+          <input type="number" id="compare-spend" min="0" step="100" value="20000">
+        </label>
+        <button type="button" id="compare-btn" class="btn-primary">Compare selected</button>
+        <button type="button" id="compare-clear" class="btn-secondary">Clear</button>
+      </div>
+      <p id="compare-status" class="status-msg"></p>
+      <div id="compare-table-wrap"></div>
+    </section>
 
     <section>
       <h3>Step 1: Choose a Bank</h3>

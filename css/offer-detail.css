@@ -77,6 +77,42 @@ body {
   font-size: 0.8rem;
 }
 
+.watch-detail-btn {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: white;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.watch-detail-btn.watched {
+  background: rgba(11, 110, 79, 0.08);
+}
+
+.redeem-hint {
+  text-align: center;
+  color: #777;
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.expired-badge {
+  display: inline-block;
+  background: #c0392b;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 8px;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+}
+
 .btn-primary {
   width: 100%;
   padding: 0.85rem;

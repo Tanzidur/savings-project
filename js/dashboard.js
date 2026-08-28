@@ -13,6 +13,27 @@ fetch(`${API}/dashboard`, { credentials: 'include' })
 
     document.getElementById('welcome-heading').textContent = `Welcome back, ${data.name}!`;
 
+    const saved = Number(data.monthlySavings || 0).toFixed(2);
+    document.getElementById('savings-banner').innerHTML =
+      `This month you saved <strong>${saved} BDT</strong> from redeemed offers`;
+
+    const expiring = data.expiringOffers || [];
+    const expiringCard = document.getElementById('expiring-card');
+    const expiringList = document.getElementById('expiring-list');
+    if (expiring.length > 0) {
+      expiringCard.hidden = false;
+      expiringList.innerHTML = '';
+      expiring.forEach(o => {
+        const row = document.createElement('a');
+        row.className = 'expiring-row';
+        row.href = `offer-detail.html?offerId=${o.id}`;
+        row.innerHTML = `<span>${o.title}</span><span>${o.merchant} · until ${o.validUntil}</span>`;
+        expiringList.appendChild(row);
+      });
+    } else {
+      expiringCard.hidden = true;
+    }
+
     if (data.transactions && data.transactions.length > 0) {
       renderTransactionsList(data.transactions);
       renderChart(data.transactions);
