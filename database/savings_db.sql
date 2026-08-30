@@ -139,7 +139,11 @@ CREATE TABLE `offers` (
   `category` varchar(50) DEFAULT NULL,
   `discount` varchar(30) DEFAULT NULL,
   `bank_id` varchar(50) DEFAULT NULL,
-  `valid_until` date DEFAULT NULL
+  `valid_until` date DEFAULT NULL,
+  `min_spend` decimal(10,2) NOT NULL DEFAULT 0,
+  `discount_cap` decimal(10,2) DEFAULT NULL,
+  `eligible_card_type` varchar(20) NOT NULL DEFAULT 'Any',
+  `terms` varchar(500) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `offers` (`id`, `merchant`, `title`, `description`, `category`, `discount`, `bank_id`, `valid_until`) VALUES
@@ -174,6 +178,7 @@ CREATE TABLE `users` (
   `nid` varchar(20) DEFAULT NULL,
   `phone_verified` tinyint(1) NOT NULL DEFAULT 0,
   `nid_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `monthly_savings_goal` decimal(10,2) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -193,7 +198,9 @@ CREATE TABLE `transactions` (
   `transaction_date` date DEFAULT NULL,
   `offer_title` varchar(150) DEFAULT NULL,
   `description` varchar(255) DEFAULT NULL,
-  `savings_amount` decimal(10,2) DEFAULT 0
+  `savings_amount` decimal(10,2) DEFAULT 0,
+  `offer_id` int(11) DEFAULT NULL,
+  `card_id` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `transactions` (`id`, `user_id`, `category`, `amount`, `transaction_date`, `offer_title`, `description`, `savings_amount`) VALUES
@@ -273,7 +280,9 @@ ALTER TABLE `offer_watchlist`
 
 ALTER TABLE `transactions`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `offer_id` (`offer_id`),
+  ADD KEY `card_id` (`card_id`);
 
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),

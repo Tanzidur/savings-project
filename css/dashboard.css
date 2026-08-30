@@ -34,6 +34,35 @@ body {
   font-size: 1.25rem;
 }
 
+.goal-card, .insights-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-bottom: 1.25rem;
+}
+
+.goal-heading, .goal-control { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.goal-heading h3, .insights-card h3, .insight-panel h4 { margin: 0; }
+.goal-heading p { margin: 0.35rem 0 0; color: #667085; font-size: 0.9rem; }
+.goal-control { justify-content: flex-start; margin: 1rem 0 0.75rem; }
+.goal-control label { font-size: 0.9rem; font-weight: 600; }
+.goal-control input { width: 150px; padding: 0.55rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 6px; font: inherit; }
+.goal-save-btn { padding: 0.55rem 0.9rem; border: 0; border-radius: 6px; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer; }
+.progress-track { height: 10px; background: #e8f0ec; border-radius: 999px; overflow: hidden; }
+.progress-fill { width: 0; height: 100%; background: linear-gradient(90deg, var(--color-primary), #55b98f); border-radius: inherit; transition: width 0.35s ease; }
+.insights-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+.insight-panel { border: 1px solid #e6eaed; border-radius: 9px; padding: 0.9rem; }
+.insight-panel h4 { color: #344054; font-size: 0.9rem; }
+.insight-list { margin-top: 0.65rem; }
+.insight-row { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid #f0f2f4; font-size: 0.86rem; }
+.insight-row:last-child { border-bottom: 0; }
+.insight-row strong { color: var(--color-primary); white-space: nowrap; }
+.insight-empty { margin: 0.65rem 0 0; color: #667085; font-size: 0.85rem; line-height: 1.4; }
+.best-card-insight { margin-top: 0.65rem; }
+.best-card-name { margin: 0; color: var(--color-primary); font-weight: 700; }
+.best-card-savings { margin: 0.25rem 0 0; color: #344054; font-size: 0.88rem; }
+
 .expiring-card {
   background: white;
   border-radius: 12px;
@@ -259,4 +288,9 @@ body {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .insights-grid { grid-template-columns: 1fr; }
+  .goal-heading { align-items: flex-start; flex-direction: column; }
 }

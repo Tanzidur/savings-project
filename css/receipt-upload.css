@@ -87,3 +87,27 @@ body {
 .hidden {
   display: none;
 }
+
+.form-group small {
+  display: block;
+  margin-top: 0.4rem;
+  color: #667085;
+  font-size: 0.8rem;
+}
+
+.optional-label { color: #667085; font-weight: 400; }
+
+.offer-match {
+  margin: 0.25rem 0 1.25rem;
+  padding: 1rem;
+  border: 1px solid #b7dfcf;
+  border-radius: 10px;
+  background: #f2fbf6;
+}
+
+.offer-match.is-missed { border-color: #f2cf93; background: #fff9ed; }
+.offer-match.is-none { border-color: #d8dde5; background: #f7f8fa; }
+.offer-match h4 { margin: 0 0 0.35rem; color: var(--color-primary); }
+.offer-match.is-missed h4, .offer-match.is-none h4 { color: #70551e; }
+.offer-match p { margin: 0; line-height: 1.45; }
+.offer-match .match-detail { margin-top: 0.5rem; color: #596579; font-size: 0.86rem; }

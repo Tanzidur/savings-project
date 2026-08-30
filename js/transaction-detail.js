@@ -26,6 +26,7 @@ fetch(`/api/transaction/${transactionId}`, { credentials: 'include' })
       <div class="detail-meta">
         Date: ${t.date}
         ${t.offerTitle ? `<br>Redeemed via: ${t.offerTitle}` : ''}
+        ${t.savingsAmount ? `<br>Recorded savings: ${t.savingsAmount.toFixed(2)} BDT` : ''}
       </div>
     `;
   })

@@ -43,13 +43,14 @@
             <th>Merchant</th>
             <th>Bank</th>
             <th>Discount</th>
+            <th>Conditions</th>
             <th>Valid Until</th>
             <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody id="offers-tbody">
-          <tr class="empty-row"><td colspan="7">Loading offers...</td></tr>
+          <tr class="empty-row"><td colspan="8">Loading offers...</td></tr>
         </tbody>
       </table>
     </div>
@@ -94,9 +95,34 @@
           <input type="date" id="offer-valid-until-input" required>
         </div>
 
+        <div class="form-row">
+          <div class="form-group">
+            <label for="offer-min-spend-input">Minimum Spend (BDT)</label>
+            <input type="number" min="0" step="1" id="offer-min-spend-input" value="0">
+          </div>
+          <div class="form-group">
+            <label for="offer-cap-input">Discount Cap (BDT)</label>
+            <input type="number" min="0" step="1" id="offer-cap-input" placeholder="No cap">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-card-type-select">Eligible Card Type</label>
+          <select id="offer-card-type-select">
+            <option value="Any">Any card type</option>
+            <option value="Credit">Credit only</option>
+            <option value="Debit">Debit only</option>
+          </select>
+        </div>
+
         <div class="form-group">
           <label for="offer-description-input">Description</label>
           <textarea id="offer-description-input" placeholder="Full offer details shown on the offer page"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="offer-terms-input">Terms & Conditions</label>
+          <textarea id="offer-terms-input" placeholder="e.g. Valid at all branches; not combinable with other promotions"></textarea>
         </div>
 
         <div class="form-actions">

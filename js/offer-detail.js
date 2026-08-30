@@ -19,7 +19,28 @@ Promise.all([
   const loggedIn = !!(session && session.loggedIn);
   const watched = ((watch && watch.offerIds) || []).map(Number).includes(Number(offer.id));
   const eligibleCards = (cards || []).filter(c => c.bankId === offer.bankId);
-  const canRedeem = !offer.isExpired && loggedIn && eligibleCards.length > 0;
+  const typeEligibleCards = eligibleCards.filter(c =>
+    offer.eligibleCardType === 'Any' || c.type === offer.eligibleCardType
+  );
+  const canRedeem = !offer.isExpired && loggedIn && typeEligibleCards.length > 0;
+
+  const rules = [
+    { label: 'Offer is active', passed: !offer.isExpired, detail: `Valid until ${offer.validUntil}` },
+    { label: 'Partner-bank card', passed: loggedIn ? eligibleCards.length > 0 : null, detail: `${offer.bankName} card required` },
+    ...(offer.eligibleCardType !== 'Any' ? [{
+      label: `${offer.eligibleCardType} card type`,
+      passed: loggedIn ? typeEligibleCards.length > 0 : null,
+      detail: `${offer.eligibleCardType} card required`
+    }] : []),
+    ...(Number(offer.minSpend) > 0 ? [{
+      label: 'Minimum spend', passed: null, detail: `Minimum ${Number(offer.minSpend).toLocaleString()} BDT`
+    }] : [])
+  ];
+  const checklistHtml = rules.map(rule => {
+    const icon = rule.passed === true ? '✓' : rule.passed === false ? '×' : '•';
+    const state = rule.passed === true ? 'pass' : rule.passed === false ? 'fail' : 'info';
+    return `<li class="eligibility-${state}"><span>${icon}</span><div><strong>${rule.label}</strong><small>${rule.detail}</small></div></li>`;
+  }).join('');
 
   let redeemBlock;
   if (offer.isExpired) {
@@ -29,7 +50,7 @@ Promise.all([
       <p class="redeem-hint">This deal requires a saved ${offer.bankName} card.</p>`;
   } else if (!canRedeem) {
     redeemBlock = `<a href="card-selection.html" class="btn-primary">Save a ${offer.bankName} card to redeem</a>
-      <p class="redeem-hint">Offers are bank-specific. Add a ${offer.bankName} card on Card Perks first.</p>`;
+      <p class="redeem-hint">Save an eligible ${offer.eligibleCardType === 'Any' ? '' : offer.eligibleCardType + ' '}${offer.bankName} card on Card Perks first.</p>`;
   } else {
     redeemBlock = `<a href="payout.html?offerId=${offer.id}" class="btn-primary">Pay / Redeem This Offer</a>`;
   }
@@ -45,6 +66,12 @@ Promise.all([
       <div><span class="detail-meta-label">Bank</span>${offer.bankName}</div>
       <div><span class="detail-meta-label">Valid Until</span>${offer.validUntil}</div>
     </div>
+    <section class="eligibility-box">
+      <h2>Eligibility checklist</h2>
+      <ul>${checklistHtml}</ul>
+    </section>
+    ${offer.discountCap !== null ? `<p class="offer-condition">Maximum discount: <strong>${Number(offer.discountCap).toLocaleString()} BDT</strong></p>` : ''}
+    ${offer.terms ? `<section class="terms-box"><h2>Terms & Conditions</h2><p>${offer.terms}</p></section>` : ''}
     <button type="button" class="watch-detail-btn${watched ? ' watched' : ''}" id="watch-detail-btn">
       ${watched ? '★ Watching' : '☆ Watch this offer'}
     </button>

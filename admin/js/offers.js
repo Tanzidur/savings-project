@@ -13,6 +13,10 @@ const discountInput = document.getElementById('offer-discount-input');
 const bankSelect = document.getElementById('offer-bank-select');
 const validUntilInput = document.getElementById('offer-valid-until-input');
 const descriptionInput = document.getElementById('offer-description-input');
+const minSpendInput = document.getElementById('offer-min-spend-input');
+const capInput = document.getElementById('offer-cap-input');
+const cardTypeSelect = document.getElementById('offer-card-type-select');
+const termsInput = document.getElementById('offer-terms-input');
 
 function loadBanksForDropdown() {
   fetch(`${API}/banks`, { credentials: 'include' })
@@ -35,7 +39,7 @@ function loadOffers() {
     .catch(err => {
       console.error('Failed to load offers:', err);
       document.getElementById('offers-tbody').innerHTML =
-        `<tr class="empty-row"><td colspan="7">Could not load offers. Is Flask running?</td></tr>`;
+        `<tr class="empty-row"><td colspan="8">Could not load offers. Is Flask running?</td></tr>`;
     });
 }
 
@@ -43,7 +47,7 @@ function renderOffers(offers) {
   const tbody = document.getElementById('offers-tbody');
 
   if (!offers.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No offers yet. Click "Add Offer" to create one.</td></tr>`;
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No offers yet. Click "Add Offer" to create one.</td></tr>`;
     return;
   }
 
@@ -53,6 +57,7 @@ function renderOffers(offers) {
       <td>${escapeHtml(o.merchant)}</td>
       <td class="cell-muted">${escapeHtml(o.bankName)}</td>
       <td>${escapeHtml(o.discount)}</td>
+      <td class="cell-muted">${offerConditions(o)}</td>
       <td class="cell-muted">${escapeHtml(o.validUntil)}</td>
       <td>${o.isExpired ? '<span class="badge badge-no">Expired</span>' : '<span class="badge badge-yes">Active</span>'}</td>
       <td class="col-actions">
@@ -61,6 +66,14 @@ function renderOffers(offers) {
       </td>
     </tr>
   `).join('');
+}
+
+function offerConditions(offer) {
+  const parts = [];
+  if (Number(offer.minSpend) > 0) parts.push(`Min ${Number(offer.minSpend).toLocaleString()} BDT`);
+  if (offer.discountCap !== null && offer.discountCap !== undefined) parts.push(`Cap ${Number(offer.discountCap).toLocaleString()} BDT`);
+  if (offer.eligibleCardType && offer.eligibleCardType !== 'Any') parts.push(`${offer.eligibleCardType} only`);
+  return parts.length ? parts.map(escapeHtml).join('<br>') : 'No extra limits';
 }
 
 function escapeHtml(str) {
@@ -90,6 +103,10 @@ function openEditOffer(id) {
   bankSelect.value = offer.bankId;
   validUntilInput.value = offer.validUntil;
   descriptionInput.value = offer.description;
+  minSpendInput.value = offer.minSpend || 0;
+  capInput.value = offer.discountCap ?? '';
+  cardTypeSelect.value = offer.eligibleCardType || 'Any';
+  termsInput.value = offer.terms || '';
   offerModal.classList.remove('hidden');
 }
 
@@ -137,7 +154,11 @@ offerForm.addEventListener('submit', (e) => {
     discount: discountInput.value.trim(),
     bankId: bankSelect.value,
     validUntil: validUntilInput.value,
-    description: descriptionInput.value.trim()
+    description: descriptionInput.value.trim(),
+    minSpend: minSpendInput.value || 0,
+    discountCap: capInput.value || null,
+    eligibleCardType: cardTypeSelect.value,
+    terms: termsInput.value.trim()
   };
 
   if (!payload.title || !payload.merchant || !payload.bankId || !payload.validUntil) {

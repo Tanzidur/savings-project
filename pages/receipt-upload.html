@@ -26,7 +26,7 @@
   <div class="page-container">
     <a href="dashboard.html" class="back-link">&larr; Back to Dashboard</a>
     <h1>Upload a Receipt</h1>
-    <p class="page-subtitle">We'll read it and fill in your transaction automatically.</p>
+    <p class="page-subtitle">We'll read it, check active card offers, and help you record the actual saving.</p>
 
     <div class="upload-box" id="upload-box">
       <input type="file" id="receipt-input" accept="image/*" hidden>
@@ -41,6 +41,11 @@
 
     <div id="result-form" class="hidden">
       <h3 style="margin-top:2rem;">Review & Confirm</h3>
+
+      <div class="form-group">
+        <label for="result-merchant">Merchant</label>
+        <input type="text" id="result-merchant" placeholder="Merchant name on receipt">
+      </div>
 
       <div class="form-group">
         <label for="result-category">Category</label>
@@ -64,7 +69,15 @@
         <input type="text" id="result-description">
       </div>
 
-      <button id="confirm-save-btn" class="btn-primary" style="width:100%;">Add to Transactions</button>
+      <div class="form-group">
+        <label for="result-card">Card used <span class="optional-label">(optional)</span></label>
+        <select id="result-card"><option value="">Checking your saved cards…</option></select>
+        <small>Select the card you paid with to confirm whether an offer was used.</small>
+      </div>
+
+      <section id="offer-match" class="offer-match hidden" aria-live="polite"></section>
+
+      <button id="confirm-save-btn" class="btn-primary" style="width:100%;">Save Transaction</button>
     </div>
   </div>
 

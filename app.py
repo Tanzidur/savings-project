@@ -100,6 +100,102 @@ def estimate_savings_from_discount(discount_str, amount):
     return round(amount * (pct / 100.0), 2), kind
 
 
+def offer_eligibility(offer, card=None, amount=None):
+    """Return customer-facing eligibility checks for one offer and optional card."""
+    checks = []
+    required_type = (offer.get('eligibleCardType') or 'Any').strip()
+    min_spend = float(offer.get('minSpend') or 0)
+
+    checks.append({
+        "label": "Offer is active",
+        "passed": not offer.get('isExpired', False),
+        "detail": "Valid until " + str(offer.get('validUntil') or '')
+    })
+    if card is not None:
+        checks.append({
+            "label": "Partner-bank card",
+            "passed": card.get('bankId') == offer.get('bankId'),
+            "detail": offer.get('bankName') + " card required"
+        })
+        if required_type.lower() != 'any':
+            checks.append({
+                "label": required_type + " card type",
+                "passed": (card.get('type') or '').lower() == required_type.lower(),
+                "detail": required_type + " card required"
+            })
+    elif required_type.lower() != 'any':
+        checks.append({"label": required_type + " card type", "passed": None,
+                       "detail": required_type + " card required"})
+
+    if amount is not None and min_spend:
+        checks.append({
+            "label": "Minimum spend",
+            "passed": float(amount) >= min_spend,
+            "detail": f"Minimum {min_spend:,.0f} BDT"
+        })
+    elif min_spend:
+        checks.append({"label": "Minimum spend", "passed": None,
+                       "detail": f"Minimum {min_spend:,.0f} BDT"})
+    return checks
+
+
+def can_use_offer(offer, card, amount):
+    """Server-side guard for bank/type/minimum-spend offer restrictions."""
+    checks = offer_eligibility(offer, card, amount)
+    return all(c['passed'] is not False for c in checks), checks
+
+
+def receipt_offer_matches(offer, merchant, category):
+    """A receipt is primarily matched by merchant, with category as a fallback."""
+    merchant = (merchant or '').strip().lower()
+    category = (category or '').strip().lower()
+    offer_merchant = (offer.get('merchant') or '').strip().lower()
+    offer_category = (offer.get('category') or '').strip().lower()
+    return (bool(merchant) and offer_merchant == merchant) or (
+        not merchant and bool(category) and offer_category == category
+    )
+
+
+def receipt_match_payload(offers, cards, merchant, category, amount, selected_card_id=None):
+    """Build receipt-specific offer results without trusting browser-side calculations."""
+    selected_card = next((card for card in cards if card['id'] == selected_card_id), None)
+    matches = []
+
+    for offer in offers:
+        if offer.get('isExpired') or not receipt_offer_matches(offer, merchant, category):
+            continue
+        estimated, discount_kind = estimate_savings_from_discount(offer['discount'], amount)
+        if offer.get('discountCap') is not None and discount_kind == 'percent':
+            estimated = min(estimated, float(offer['discountCap']))
+
+        eligible_cards = []
+        for card in cards:
+            eligible, _ = can_use_offer(offer, card, amount)
+            if eligible:
+                eligible_cards.append(card)
+        selected_eligible = False
+        checks = offer_eligibility(offer, selected_card, amount)
+        if selected_card:
+            selected_eligible = all(check['passed'] is not False for check in checks)
+
+        matches.append({
+            'id': offer['id'], 'title': offer['title'], 'merchant': offer['merchant'],
+            'discount': offer['discount'], 'bankName': offer['bankName'],
+            'eligibleCardType': offer['eligibleCardType'], 'minSpend': offer['minSpend'],
+            'estimatedSavings': estimated, 'selectedCardEligible': selected_eligible,
+            'eligibleCards': eligible_cards, 'eligibility': checks
+        })
+
+    matches.sort(key=lambda item: (-item['estimatedSavings'], item['id']))
+    used = next((item for item in matches if item['selectedCardEligible']), None)
+    best_available = next((item for item in matches if item['eligibleCards']), None)
+    best_offer = next((item for item in matches if amount >= item['minSpend']), None)
+    return {
+        'matches': matches, 'usedOffer': used, 'bestAvailableOffer': best_available,
+        'bestOffer': best_offer
+    }
+
+
 def merchant_listed_category(merchant_name, merchants, offers):
     """Category from the merchant directory, falling back to any offer at that merchant."""
     q = (merchant_name or '').strip().lower()
@@ -187,6 +283,11 @@ def rank_cards_for_purchase(cards, offers, merchant, category, amount):
                 continue
             if offer.get('bankId') != bank_id:
                 continue
+            if amount and amount < float(offer.get('minSpend') or 0):
+                continue
+            required_type = (offer.get('eligibleCardType') or 'Any').lower()
+            if required_type != 'any' and (card.get('type') or '').lower() != required_type:
+                continue
             if offer_matches_purchase(offer, merchant_q, category_q):
                 matching.append(offer)
 
@@ -195,6 +296,9 @@ def rank_cards_for_purchase(cards, offers, merchant, category, amount):
         best_kind = 'none'
         for offer in matching:
             sav, kind = estimate_savings_from_discount(offer.get('discount'), amount)
+            cap = offer.get('discountCap')
+            if cap is not None and kind == 'percent':
+                sav = min(sav, float(cap))
             if sav > best_offer_savings:
                 best_offer_savings = sav
                 best_offer = offer
@@ -283,6 +387,13 @@ def ensure_update4_schema():
         "ALTER TABLE users ADD COLUMN nid VARCHAR(20) DEFAULT NULL",
         "ALTER TABLE users ADD COLUMN phone_verified TINYINT(1) NOT NULL DEFAULT 0",
         "ALTER TABLE users ADD COLUMN nid_verified TINYINT(1) NOT NULL DEFAULT 0",
+        "ALTER TABLE users ADD COLUMN monthly_savings_goal DECIMAL(10,2) NOT NULL DEFAULT 0",
+        "ALTER TABLE transactions ADD COLUMN offer_id INT DEFAULT NULL",
+        "ALTER TABLE transactions ADD COLUMN card_id VARCHAR(50) DEFAULT NULL",
+        "ALTER TABLE offers ADD COLUMN min_spend DECIMAL(10,2) NOT NULL DEFAULT 0",
+        "ALTER TABLE offers ADD COLUMN discount_cap DECIMAL(10,2) DEFAULT NULL",
+        "ALTER TABLE offers ADD COLUMN eligible_card_type VARCHAR(20) NOT NULL DEFAULT 'Any'",
+        "ALTER TABLE offers ADD COLUMN terms VARCHAR(500) DEFAULT NULL",
     ):
         try:
             cur.execute(stmt)
@@ -327,6 +438,34 @@ def ensure_update4_schema():
                     "INSERT INTO articles (title, category, summary, content, read_time) VALUES (%s, %s, %s, %s, %s)",
                     (title, category, summary, content, read_time)
                 )
+        mysql.connection.commit()
+    except Exception:
+        mysql.connection.rollback()
+    seeded_conditions = [
+        (5000, 1500, 'Credit', 'Valid on electronics only. Cashback is credited by the bank after the campaign.', 1),
+        (0, None, 'Any', 'Valid for one pair of standard movie tickets. Cannot be combined with other vouchers.', 2),
+        (1000, 750, 'Credit', 'Valid for dine-in orders only. Excludes delivery, takeaway, taxes, and service charge.', 3),
+        (2000, 500, 'Any', 'Cashback is valid once per customer each calendar month.', 4),
+        (0, 3000, 'Credit', 'Valid only on ticket bookings made through the airline website or sales office.', 5),
+        (1000, None, 'Any', 'Valid Friday through Sunday. Delivery area restrictions may apply.', 6),
+        (500, 300, 'Any', 'Valid with one eligible ticket purchase on the same transaction.', 7),
+        (1200, None, 'Credit', 'Valid for one complimentary soft drink with a large pizza.', 8),
+        (2000, 300, 'Any', 'Valid Saturday and Sunday only. Extra cashback is subject to the monthly cap.', 9),
+        (0, 5000, 'Credit', 'Applies to seat upgrades only and excludes the base flight fare.', 10),
+        (0, None, 'Any', 'Valid at participating outlets while campaign stock lasts.', 11),
+        (1500, 1000, 'Credit', 'Valid on the Eid collection only. Cannot be combined with sale prices.', 12),
+        (500, 250, 'Any', 'Valid at participating food-court outlets only.', 13),
+        (1000, 400, 'Debit', 'New customers only. One redemption per account.', 14),
+        (0, 1500, 'Credit', 'Valid on domestic flights only. Fares may exclude taxes.', 15),
+        (0, None, 'Any', 'One complimentary pastry per coffee transaction.', 16),
+        (2000, 2000, 'Credit', 'Valid on regular-price footwear only. Excludes clearance items.', 17),
+    ]
+    try:
+        for min_spend, cap, card_type, terms, offer_id in seeded_conditions:
+            cur.execute("""
+                UPDATE offers SET min_spend=%s, discount_cap=%s, eligible_card_type=%s, terms=%s
+                WHERE id=%s AND (terms IS NULL OR terms = '')
+            """, (min_spend, cap, card_type, terms, offer_id))
         mysql.connection.commit()
     except Exception:
         mysql.connection.rollback()
@@ -433,7 +572,9 @@ def get_offers():
         cur.execute("""
             SELECT offers.id, offers.merchant, offers.title, offers.description,
                    offers.category, offers.discount, offers.valid_until, banks.name,
-                   offers.bank_id, (offers.valid_until < CURDATE()) AS is_expired
+                   offers.bank_id, offers.min_spend, offers.discount_cap,
+                   offers.eligible_card_type, offers.terms,
+                   (offers.valid_until < CURDATE()) AS is_expired
             FROM offers
             JOIN banks ON offers.bank_id = banks.id
         """)
@@ -443,7 +584,10 @@ def get_offers():
         result = [{
             "id": r[0], "merchant": r[1], "title": r[2], "description": r[3],
             "category": r[4], "discount": r[5], "validUntil": str(r[6]), "bankName": r[7],
-            "bankId": r[8], "isExpired": bool(r[9])
+            "bankId": r[8], "minSpend": float(r[9] or 0),
+            "discountCap": float(r[10]) if r[10] is not None else None,
+            "eligibleCardType": r[11] or 'Any', "terms": r[12] or '',
+            "isExpired": bool(r[13])
         } for r in rows]
 
         return jsonify(result)
@@ -582,6 +726,48 @@ def get_dashboard():
         )
         monthly_savings = float(cur.fetchone()[0] or 0)
 
+        cur.execute("SELECT COALESCE(monthly_savings_goal, 0) FROM users WHERE id = %s", (user_id,))
+        savings_goal = float(cur.fetchone()[0] or 0)
+
+        cur.execute("""
+            SELECT category, COALESCE(SUM(savings_amount), 0)
+            FROM transactions
+            WHERE user_id = %s AND YEAR(transaction_date) = YEAR(CURDATE())
+              AND MONTH(transaction_date) = MONTH(CURDATE()) AND COALESCE(savings_amount, 0) > 0
+            GROUP BY category ORDER BY SUM(savings_amount) DESC
+        """, (user_id,))
+        category_savings = [{'label': r[0] or 'Other', 'amount': float(r[1] or 0)} for r in cur.fetchall()]
+
+        cur.execute("""
+            SELECT banks.name, COALESCE(SUM(transactions.savings_amount), 0)
+            FROM transactions
+            JOIN offers ON offers.id = transactions.offer_id
+            JOIN banks ON banks.id = offers.bank_id
+            WHERE transactions.user_id = %s AND YEAR(transactions.transaction_date) = YEAR(CURDATE())
+              AND MONTH(transactions.transaction_date) = MONTH(CURDATE())
+              AND COALESCE(transactions.savings_amount, 0) > 0
+            GROUP BY banks.id, banks.name ORDER BY SUM(transactions.savings_amount) DESC
+        """, (user_id,))
+        bank_savings = [{'label': r[0], 'amount': float(r[1] or 0)} for r in cur.fetchall()]
+
+        cur.execute("""
+            SELECT cards.id, banks.name, cards.type, cards.network, cards.tier,
+                   COALESCE(SUM(transactions.savings_amount), 0) AS total_saved
+            FROM transactions
+            JOIN cards ON cards.id = transactions.card_id
+            JOIN banks ON banks.id = cards.bank_id
+            WHERE transactions.user_id = %s AND YEAR(transactions.transaction_date) = YEAR(CURDATE())
+              AND MONTH(transactions.transaction_date) = MONTH(CURDATE())
+              AND COALESCE(transactions.savings_amount, 0) > 0
+            GROUP BY cards.id, banks.name, cards.type, cards.network, cards.tier
+            ORDER BY total_saved DESC LIMIT 1
+        """, (user_id,))
+        best_card_row = cur.fetchone()
+        best_card = None if not best_card_row else {
+            'id': best_card_row[0], 'bankName': best_card_row[1], 'type': best_card_row[2],
+            'network': best_card_row[3], 'tier': best_card_row[4], 'savings': float(best_card_row[5] or 0)
+        }
+
         cur.execute("""
             SELECT offers.id, offers.merchant, offers.title, offers.discount, offers.valid_until, banks.name
             FROM offer_watchlist
@@ -609,10 +795,34 @@ def get_dashboard():
             "name": session.get('user_name'),
             "transactions": transactions,
             "monthlySavings": monthly_savings,
+            "savingsGoal": savings_goal,
+            "categorySavings": category_savings,
+            "bankSavings": bank_savings,
+            "bestCard": best_card,
             "expiringOffers": expiring
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/savings-goal', methods=['PUT'])
+def update_savings_goal():
+    try:
+        if not session.get('user_id'):
+            return jsonify({'error': 'Not logged in'}), 401
+        try:
+            goal = float((request.get_json() or {}).get('goal') or 0)
+            if goal < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Goal must be a non-negative amount'}), 400
+        cur = mysql.connection.cursor()
+        cur.execute('UPDATE users SET monthly_savings_goal = %s WHERE id = %s', (goal, session['user_id']))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True, 'goal': goal})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/api/transaction/<int:transaction_id>')
@@ -624,7 +834,8 @@ def get_transaction(transaction_id):
         user_id = session['user_id']
         cur = mysql.connection.cursor()
         cur.execute(
-            "SELECT id, category, amount, transaction_date, offer_title, description FROM transactions WHERE id = %s AND user_id = %s",
+            "SELECT id, category, amount, transaction_date, offer_title, description, COALESCE(savings_amount, 0) "
+            "FROM transactions WHERE id = %s AND user_id = %s",
             (transaction_id, user_id)
         )
         row = cur.fetchone()
@@ -635,7 +846,8 @@ def get_transaction(transaction_id):
 
         return jsonify({
             "id": row[0], "category": row[1], "amount": float(row[2]),
-            "date": str(row[3]), "offerTitle": row[4], "description": row[5]
+            "date": str(row[3]), "offerTitle": row[4], "description": row[5],
+            "savingsAmount": float(row[6] or 0)
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -770,6 +982,7 @@ def redeem_offer():
         cur = mysql.connection.cursor()
         cur.execute(
             "SELECT offers.discount, offers.title, offers.category, offers.bank_id, banks.name, "
+            "offers.min_spend, offers.discount_cap, offers.eligible_card_type, offers.terms, "
             "(offers.valid_until < CURDATE()) AS is_expired "
             "FROM offers JOIN banks ON offers.bank_id = banks.id WHERE offers.id = %s",
             (offer_id,)
@@ -779,8 +992,9 @@ def redeem_offer():
             cur.close()
             return jsonify({"success": False, "error": "Offer not found"}), 404
 
-        discount, offer_title, category, offer_bank_id, partner_bank, is_expired = (
-            offer_row[0], offer_row[1], offer_row[2], offer_row[3], offer_row[4], bool(offer_row[5])
+        discount, offer_title, category, offer_bank_id, partner_bank, min_spend, discount_cap, eligible_card_type, terms, is_expired = (
+            offer_row[0], offer_row[1], offer_row[2], offer_row[3], offer_row[4], offer_row[5],
+            offer_row[6], offer_row[7], offer_row[8], bool(offer_row[9])
         )
         if is_expired:
             cur.close()
@@ -794,7 +1008,7 @@ def redeem_offer():
             }), 400
 
         cur.execute("""
-            SELECT cards.bank_id FROM user_cards
+            SELECT cards.bank_id, cards.type FROM user_cards
             JOIN cards ON user_cards.card_id = cards.id
             WHERE user_cards.user_id = %s AND user_cards.card_id = %s
         """, (user_id, card_id))
@@ -809,12 +1023,25 @@ def redeem_offer():
                 "error": f"This offer can only be redeemed with a saved {partner_bank} card."
             }), 403
 
+        offer_data = {
+            "bankId": offer_bank_id, "bankName": partner_bank, "minSpend": min_spend,
+            "eligibleCardType": eligible_card_type, "terms": terms, "isExpired": is_expired
+        }
+        card_data = {"bankId": card_row[0], "type": card_row[1]}
+        eligible, checks = can_use_offer(offer_data, card_data, amount)
+        if not eligible:
+            cur.close()
+            failed = next(c for c in checks if c['passed'] is False)
+            return jsonify({"success": False, "error": failed['detail'], "eligibility": checks}), 400
+
         savings_amount, _ = estimate_savings_from_discount(discount, amount)
+        if discount_cap is not None and classify_discount(discount) == 'percent':
+            savings_amount = min(savings_amount, float(discount_cap))
 
         cur.execute(
-            "INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title, description, savings_amount) "
-            "VALUES (%s, %s, %s, CURDATE(), %s, %s, %s)",
-            (user_id, category, amount, offer_title, offer_title, savings_amount)
+            "INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title, description, savings_amount, offer_id, card_id) "
+            "VALUES (%s, %s, %s, CURDATE(), %s, %s, %s, %s, %s)",
+            (user_id, category, amount, offer_title, offer_title, savings_amount, offer_id, card_id)
         )
         mysql.connection.commit()
         cur.close()
@@ -846,6 +1073,134 @@ def ocr_receipt():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+# ---------- RECEIPT-TO-OFFER MATCHING ----------
+@app.route('/api/receipt-offer-match', methods=['POST'])
+def match_receipt_offers():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        data = request.get_json() or {}
+        merchant = (data.get('merchant') or '').strip()
+        category = (data.get('category') or '').strip()
+        card_id = data.get('cardId') or None
+        try:
+            amount = float(data.get('amount') or 0)
+            if amount <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Enter a valid receipt amount"}), 400
+
+        cur = mysql.connection.cursor()
+        cur.execute("""
+            SELECT offers.id, offers.merchant, offers.title, offers.category, offers.discount,
+                   banks.name, offers.bank_id, offers.min_spend, offers.discount_cap,
+                   offers.eligible_card_type, (offers.valid_until < CURDATE()) AS is_expired
+            FROM offers JOIN banks ON offers.bank_id = banks.id
+        """)
+        offer_rows = cur.fetchall()
+        cur.execute("""
+            SELECT cards.id, cards.network, cards.type, cards.tier, cards.cashback,
+                   cards.reward_points, cards.emi, cards.annual_fee, banks.name, cards.bank_id
+            FROM user_cards
+            JOIN cards ON user_cards.card_id = cards.id
+            JOIN banks ON cards.bank_id = banks.id
+            WHERE user_cards.user_id = %s
+        """, (session['user_id'],))
+        card_rows = cur.fetchall()
+        cur.close()
+
+        offers = [{
+            'id': r[0], 'merchant': r[1], 'title': r[2], 'category': r[3], 'discount': r[4],
+            'bankName': r[5], 'bankId': r[6], 'minSpend': float(r[7] or 0),
+            'discountCap': float(r[8]) if r[8] is not None else None,
+            'eligibleCardType': r[9] or 'Any', 'isExpired': bool(r[10])
+        } for r in offer_rows]
+        cards = [{
+            'id': r[0], 'network': r[1], 'type': r[2], 'tier': r[3], 'cashback': r[4],
+            'rewardPoints': r[5], 'emi': bool(r[6]), 'annualFee': r[7],
+            'bankName': r[8], 'bankId': r[9]
+        } for r in card_rows]
+        result = receipt_match_payload(offers, cards, merchant, category, amount, card_id)
+        return jsonify({'success': True, 'cards': cards, 'amount': amount, **result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/save-receipt-transaction', methods=['POST'])
+def save_receipt_transaction():
+    try:
+        if not session.get('user_id'):
+            return jsonify({"error": "Not logged in"}), 401
+
+        data = request.get_json() or {}
+        merchant = (data.get('merchant') or '').strip()
+        category = (data.get('category') or '').strip()
+        description = (data.get('description') or '').strip()
+        card_id = data.get('cardId') or None
+        offer_id = data.get('offerId') or None
+        if category not in ALLOWED_CATEGORIES:
+            return jsonify({'success': False, 'error': 'Choose a valid category'}), 400
+        try:
+            amount = float(data.get('amount') or 0)
+            if amount <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            return jsonify({'success': False, 'error': 'Invalid amount'}), 400
+
+        cur = mysql.connection.cursor()
+        offer_title, savings_amount = None, 0.0
+        if offer_id:
+            cur.execute("""
+                SELECT offers.merchant, offers.title, offers.category, offers.discount, banks.name,
+                       offers.bank_id, offers.min_spend, offers.discount_cap, offers.eligible_card_type,
+                       (offers.valid_until < CURDATE()) AS is_expired
+                FROM offers JOIN banks ON offers.bank_id = banks.id WHERE offers.id = %s
+            """, (offer_id,))
+            row = cur.fetchone()
+            if not row:
+                cur.close()
+                return jsonify({'success': False, 'error': 'Selected offer no longer exists'}), 404
+            offer = {'id': offer_id, 'merchant': row[0], 'title': row[1], 'category': row[2],
+                     'discount': row[3], 'bankName': row[4], 'bankId': row[5],
+                     'minSpend': float(row[6] or 0),
+                     'discountCap': float(row[7]) if row[7] is not None else None,
+                     'eligibleCardType': row[8] or 'Any', 'isExpired': bool(row[9])}
+            if not receipt_offer_matches(offer, merchant, category) or offer['isExpired']:
+                cur.close()
+                return jsonify({'success': False, 'error': 'That offer does not match this active receipt'}), 400
+            if not card_id:
+                cur.close()
+                return jsonify({'success': False, 'error': 'Choose the saved card used for this offer'}), 400
+            cur.execute("""
+                SELECT cards.bank_id, cards.type FROM user_cards JOIN cards ON user_cards.card_id = cards.id
+                WHERE user_cards.user_id = %s AND user_cards.card_id = %s
+            """, (session['user_id'], card_id))
+            card_row = cur.fetchone()
+            if not card_row:
+                cur.close()
+                return jsonify({'success': False, 'error': 'Choose a card saved to your account'}), 400
+            eligible, _ = can_use_offer(offer, {'bankId': card_row[0], 'type': card_row[1]}, amount)
+            if not eligible:
+                cur.close()
+                return jsonify({'success': False, 'error': 'The selected card is not eligible for this offer'}), 400
+            savings_amount, kind = estimate_savings_from_discount(offer['discount'], amount)
+            if offer['discountCap'] is not None and kind == 'percent':
+                savings_amount = min(savings_amount, offer['discountCap'])
+            offer_title = offer['title']
+
+        cur.execute("""
+            INSERT INTO transactions (user_id, category, amount, transaction_date, offer_title, description, savings_amount, offer_id, card_id)
+            VALUES (%s, %s, %s, CURDATE(), %s, %s, %s, %s, %s)
+        """, (session['user_id'], category, amount, offer_title, description or merchant or None,
+              savings_amount, offer_id, card_id))
+        mysql.connection.commit()
+        cur.close()
+        return jsonify({'success': True, 'savingsAmount': savings_amount, 'offerTitle': offer_title})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 # ---------- RECOMMEND BEST CARD ----------
 @app.route('/api/recommend')
 def recommend_card():
@@ -870,7 +1225,9 @@ def recommend_card():
         cur.execute("""
             SELECT offers.id, offers.merchant, offers.title, offers.description,
                    offers.category, offers.discount, offers.valid_until, banks.name,
-                   offers.bank_id, (offers.valid_until < CURDATE()) AS is_expired
+                   offers.bank_id, offers.min_spend, offers.discount_cap,
+                   offers.eligible_card_type, offers.terms,
+                   (offers.valid_until < CURDATE()) AS is_expired
             FROM offers
             JOIN banks ON offers.bank_id = banks.id
         """)
@@ -878,7 +1235,10 @@ def recommend_card():
         offers = [{
             "id": r[0], "merchant": r[1], "title": r[2], "description": r[3],
             "category": r[4], "discount": r[5], "validUntil": str(r[6]), "bankName": r[7],
-            "bankId": r[8], "isExpired": bool(r[9])
+            "bankId": r[8], "minSpend": float(r[9] or 0),
+            "discountCap": float(r[10]) if r[10] is not None else None,
+            "eligibleCardType": r[11] or 'Any', "terms": r[12] or '',
+            "isExpired": bool(r[13])
         } for r in offer_rows]
 
         cur.execute("SELECT name, category FROM merchants")
@@ -1576,6 +1936,7 @@ def admin_get_offers():
         cur.execute("""
             SELECT offers.id, offers.merchant, offers.title, offers.description,
                    offers.category, offers.discount, offers.bank_id, banks.name, offers.valid_until,
+                   offers.min_spend, offers.discount_cap, offers.eligible_card_type, offers.terms,
                    (offers.valid_until < CURDATE()) AS is_expired
             FROM offers JOIN banks ON offers.bank_id = banks.id
             ORDER BY offers.valid_until DESC
@@ -1585,7 +1946,9 @@ def admin_get_offers():
         return jsonify([{
             "id": r[0], "merchant": r[1], "title": r[2], "description": r[3],
             "category": r[4], "discount": r[5], "bankId": r[6], "bankName": r[7],
-            "validUntil": str(r[8]), "isExpired": bool(r[9])
+            "validUntil": str(r[8]), "minSpend": float(r[9] or 0),
+            "discountCap": float(r[10]) if r[10] is not None else None,
+            "eligibleCardType": r[11] or 'Any', "terms": r[12] or '', "isExpired": bool(r[13])
         } for r in rows])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1603,15 +1966,29 @@ def admin_add_offer():
         discount = (data.get('discount') or '').strip()
         bank_id = (data.get('bankId') or '').strip()
         valid_until = (data.get('validUntil') or '').strip()
+        min_spend = data.get('minSpend') or 0
+        discount_cap = data.get('discountCap') or None
+        eligible_card_type = (data.get('eligibleCardType') or 'Any').strip()
+        terms = (data.get('terms') or '').strip()
 
         if not merchant or not title or not bank_id or not valid_until:
             return jsonify({"success": False, "error": "Merchant, title, bank, and validity date are required"}), 400
-
+        try:
+            min_spend = float(min_spend)
+            discount_cap = float(discount_cap) if discount_cap is not None else None
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Minimum spend and cap must be numbers"}), 400
+        if min_spend < 0 or (discount_cap is not None and discount_cap < 0):
+            return jsonify({"success": False, "error": "Minimum spend and cap cannot be negative"}), 400
+        if eligible_card_type not in ('Any', 'Credit', 'Debit'):
+            return jsonify({"success": False, "error": "Eligible card type must be Any, Credit, or Debit"}), 400
         cur = mysql.connection.cursor()
         cur.execute("""
-            INSERT INTO offers (merchant, title, description, category, discount, bank_id, valid_until)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (merchant, title, description, category, discount, bank_id, valid_until))
+            INSERT INTO offers (merchant, title, description, category, discount, bank_id, valid_until,
+                                min_spend, discount_cap, eligible_card_type, terms)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (merchant, title, description, category, discount, bank_id, valid_until,
+              min_spend, discount_cap, eligible_card_type, terms))
         mysql.connection.commit()
         cur.close()
         return jsonify({"success": True})
@@ -1633,15 +2010,30 @@ def admin_update_offer(offer_id):
         discount = (data.get('discount') or '').strip()
         bank_id = (data.get('bankId') or '').strip()
         valid_until = (data.get('validUntil') or '').strip()
+        min_spend = data.get('minSpend') or 0
+        discount_cap = data.get('discountCap') or None
+        eligible_card_type = (data.get('eligibleCardType') or 'Any').strip()
+        terms = (data.get('terms') or '').strip()
 
         if not merchant or not title or not bank_id or not valid_until:
             return jsonify({"success": False, "error": "Merchant, title, bank, and validity date are required"}), 400
+        try:
+            min_spend = float(min_spend)
+            discount_cap = float(discount_cap) if discount_cap is not None else None
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "Minimum spend and cap must be numbers"}), 400
+        if min_spend < 0 or (discount_cap is not None and discount_cap < 0):
+            return jsonify({"success": False, "error": "Minimum spend and cap cannot be negative"}), 400
+        if eligible_card_type not in ('Any', 'Credit', 'Debit'):
+            return jsonify({"success": False, "error": "Eligible card type must be Any, Credit, or Debit"}), 400
 
         cur = mysql.connection.cursor()
         cur.execute("""
             UPDATE offers SET merchant=%s, title=%s, description=%s, category=%s,
-                   discount=%s, bank_id=%s, valid_until=%s WHERE id=%s
-        """, (merchant, title, description, category, discount, bank_id, valid_until, offer_id))
+                   discount=%s, bank_id=%s, valid_until=%s, min_spend=%s,
+                   discount_cap=%s, eligible_card_type=%s, terms=%s WHERE id=%s
+        """, (merchant, title, description, category, discount, bank_id, valid_until,
+              min_spend, discount_cap, eligible_card_type, terms, offer_id))
         mysql.connection.commit()
         cur.close()
         return jsonify({"success": True})

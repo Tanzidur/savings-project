@@ -133,3 +133,47 @@ body {
   color: #999;
   font-style: italic;
 }
+
+.eligibility-box, .terms-box {
+  border-top: 1px solid #eee;
+  padding-top: 1rem;
+  margin: 1rem 0;
+}
+
+.eligibility-box h2, .terms-box h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+  color: #333;
+}
+
+.eligibility-box ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.eligibility-box li {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  font-size: 0.88rem;
+}
+
+.eligibility-box li > span {
+  width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.eligibility-pass > span { background: #e6f6ed; color: #16803d; }
+.eligibility-fail > span { background: #fff0f0; color: #b92a2a; }
+.eligibility-info > span { background: #edf4ff; color: #2468b0; }
+.eligibility-box strong, .eligibility-box small { display: block; }
+.eligibility-box small { color: #777; margin-top: 0.12rem; }
+.offer-condition { color: #555; font-size: 0.9rem; }
+.terms-box p { margin: 0; color: #555; line-height: 1.5; font-size: 0.9rem; }

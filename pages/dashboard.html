@@ -37,6 +37,39 @@
     <a href="receipt-upload.html" class="btn-primary" style="display:inline-block; text-decoration:none; margin-bottom:1.5rem;">Upload Receipt</a>
 
     <div class="savings-banner" id="savings-banner">This month you saved <strong>0.00 BDT</strong></div>
+    <section class="goal-card" aria-labelledby="goal-title">
+      <div class="goal-heading">
+        <div>
+          <h3 id="goal-title">Monthly savings goal</h3>
+          <p id="goal-summary">Set a target to track your offer savings this month.</p>
+        </div>
+        <button id="save-goal-btn" class="goal-save-btn">Save goal</button>
+      </div>
+      <div class="goal-control">
+        <label for="savings-goal-input">Target (BDT)</label>
+        <input id="savings-goal-input" type="number" min="0" step="100" placeholder="e.g. 2000">
+      </div>
+      <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="goal-progress-bar" class="progress-fill"></div>
+      </div>
+    </section>
+    <section class="insights-card" aria-labelledby="insights-title">
+      <h3 id="insights-title">Savings insights</h3>
+      <div class="insights-grid">
+        <div class="insight-panel">
+          <h4>By category</h4>
+          <div id="category-savings-list" class="insight-list"></div>
+        </div>
+        <div class="insight-panel">
+          <h4>By bank</h4>
+          <div id="bank-savings-list" class="insight-list"></div>
+        </div>
+        <div class="insight-panel best-card-panel">
+          <h4>Your most valuable card</h4>
+          <div id="best-card-insight" class="best-card-insight"></div>
+        </div>
+      </div>
+    </section>
     <div class="expiring-card" id="expiring-card" hidden>
       <h3>Expiring in the next 14 days</h3>
       <div id="expiring-list"></div>
