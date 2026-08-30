@@ -200,6 +200,15 @@ Logic and polish before faculty review.
 - **Landing page background** — Unsplash hero photo behind the home headline (`images/hero-bg.jpg`).
 - **Financial Education** — habit cards, redeem checklist, topic filters, glossary, extra guides (debit vs credit, fee vs cashback, reading offers, OTP safety).
 
+## Update 6
+Receipt-to-offer matching and savings insights.
+
+- **Receipt-to-Offer Matching** — after Gemini reads a receipt, the user can confirm the merchant, amount, category, and card used. The app checks active merchant offers server-side, including expiry, minimum spend, eligible bank/card type, and discount caps.
+- **Clear outcome** — the receipt flow now says either “Eligible offer used” with the estimated saving, or “You could have saved…” with the qualifying card and offer. Only a server-verified eligible match is saved as an offer saving.
+- **Attribution for insights** — matched receipt and redeem transactions store their offer and card IDs, so savings are linked to the category, partner bank, and actual saved card that produced them.
+- **Monthly Savings Goal** — Dashboard users can set a BDT target, see month-to-date progress, and update the goal at any time.
+- **Savings Insights** — Dashboard shows savings by category, by bank, and the user’s most valuable card for the current month. Transaction details also show recorded savings.
+
 ## Progress Log
 For a more detailed timeline, refer to the git commits (`git log`).
 
@@ -219,3 +228,5 @@ For a more detailed timeline, refer to the git commits (`git log`).
 - 28/08 — Best Card Picker: merchant and category must both match a real purchase (Dining + Apex no longer ranks). Category-only with no live deals shows an empty state. Watchlist tab/filter added on Deals & Offers.
 - 28/08 — Dashboard Settings enlarged; 3-step account verification (phone, NID, confirm). After verify, the wizard stops and the account stays marked Verified.
 - 29/08 — Update 5: single `savings_db.sql` dump (patch SQL files removed), Unsplash landing-page hero background, Financial Education expanded (tips, checklist, filters, glossary, extra guides).
+- 31/08 — Update 6: Receipt-to-Offer Matching added to the OCR flow. It verifies active offer conditions against the receipt and selected card, identifies used versus missed savings, and stores verified savings with offer/card attribution.
+- 31/08 — Dashboard expanded with a monthly savings goal and progress bar, savings by category and bank, and “most valuable card” insight based on recorded savings.
